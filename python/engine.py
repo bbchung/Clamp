@@ -2,6 +2,7 @@ from neovim import attach
 from clang import cindex
 import compilation_database
 import clamp_helper
+import sys
 
 _is_running = True
 
@@ -81,7 +82,7 @@ def engine_shutdown():
 
 
 def engine_start():
-    nvim = attach('socket', path='/tmp/neovim')
+    nvim = attach('socket', path=sys.argv[1])
     nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
     cindex.Config.set_library_file(nvim.vars['clamp_libclang_path'])
     idx = cindex.Index.create()

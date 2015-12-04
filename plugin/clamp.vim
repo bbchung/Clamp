@@ -51,8 +51,9 @@ fun! s:clear_clamp_match()
 endf
 
 fun! s:enable_clamp()
+    echo 'python '.s:script_folder_path.'/../python/engine.py '.v:servername
     call s:disable_clamp()
-    let s:clamp_job = jobstart('python '.s:script_folder_path.'/../python/engine.py')
+    let s:clamp_job = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
 endf
 
 fun! s:disable_clamp()
