@@ -94,7 +94,6 @@ let g:clamp_compile_args = get(g:, 'clamp_compile_args', [])
 
 command! ClampStart call s:enable_clamp()
 command! ClampStop call s:disable_clamp()
-command! ClampClear call s:disable_clamp()
 
 if g:clamp_autostart
     au VimEnter * call s:enable_clamp()
