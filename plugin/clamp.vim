@@ -42,34 +42,36 @@ fun! ClampHighlight(filepath, matches, priority) " {'GROUP1' : [[],[]], 'GROUP2'
     endfor
 endf
 
-fun! s:clear_clamp_match()
+fun! s:shutdown()
+    let a:wnr = winnr()
+    windo call s:clear_match_by_priorities([g:clamp_occurrence_priority, g:clamp_syntax_priority]) 
+    exe a:wnr.'wincmd w'
+
+    silent! unlet g:clamp_channel
+
+    if exists('s:clamp_job')
+        call jobstop(s:clamp_job)
+        silent! unlet s:clamp_job
+    endif
+endf
+
+fun! s:clear_match_by_priorities(priorities)
     for m in getmatches()
-        if index([g:clamp_occurrence_priority, g:clamp_syntax_priority], m['priority']) >= 0
+        if index(a:priorities, m['priority']) >= 0
             call matchdelete(m['id'])
         endif
     endfor
 endf
 
 fun! s:enable_clamp()
-    echo 'python '.s:script_folder_path.'/../python/engine.py '.v:servername
-    call s:disable_clamp()
+    call s:notify_shutdown()
     let s:clamp_job = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
 endf
 
-fun! s:disable_clamp()
-    let a:wnr = winnr()
-    windo call s:clear_clamp_match()
-    exe a:wnr.'wincmd w'
-    
+fun! s:notify_shutdown()
     if exists('g:clamp_channel')
-        call rpcnotify(g:clamp_channel, 'shutdown')
+        call rpcrequest(g:clamp_channel, 'shutdown')
     endif
-
-    if exists('s:clamp_job')
-        call jobstop(s:clamp_job)
-    endif
-    silent! unlet s:clamp_job
-    silent! unlet g:clamp_channel
 endf
 
 fun! ClampNotifyParseHighlight()
@@ -93,7 +95,7 @@ let g:clamp_heuristic_compile_args = get(g:, 'clamp_heuristic_compile_args', 1)
 let g:clamp_compile_args = get(g:, 'clamp_compile_args', [])
 
 command! ClampStart call s:enable_clamp()
-command! ClampStop call s:disable_clamp()
+command! ClampShutdown call s:notify_shutdown()
 
 if g:clamp_autostart
     au VimEnter * call s:enable_clamp()

@@ -4,7 +4,13 @@ import compilation_database
 import clamp_helper
 import sys
 
-_is_running = True
+_is_running = False
+nvim = None
+context = {}  # {'filepath' : (tu, tick)}
+idx = None
+cdb = None
+global_args = None
+blacklist = None
 
 CUSTOM_SYNTAX_GROUP = {
     cindex.CursorKind.INCLUSION_DIRECTIVE: 'clampInclusionDirective',
@@ -77,16 +83,50 @@ def _get_syntax_group(cursor_kind, type_kind, blacklist):
     return group
 
 
-def engine_shutdown():
-    _is_running = False
+def notify_cb(name, args):
+    global nvim
+    global context
 
+    if name == 'parse&highlight':
+        filepath = args[0]
+        begin_line = args[1]
+        end_line = args[2]
+
+        changedtick = int(nvim.eval('b:changedtick'))
+        if filepath not in context or context[filepath][1] != changedtick:
+            unsaved = []
+            for buffer in nvim.buffers:
+                unsaved.append((buffer.name, '\n'.join(buffer)))
+
+            parse(unsaved, filepath, changedtick)
+
+        tu, tick = context[filepath]
+        highlight(tu, filepath, begin_line, end_line)
+
+def request_cb(name, args):
+    global _is_running
+    global nvim
+
+    if name == 'shutdown':
+        nvim.call('s:shutdown')
+        nvim.session.stop()
+        _is_running = False
+
+    return True
 
 def engine_start():
+    global _is_running
+    global nvim
+    global idx
+    global cdb
+    global global_args
+    global blacklist
+
+    _is_running = True
     nvim = attach('socket', path=sys.argv[1])
     nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
     cindex.Config.set_library_file(nvim.vars['clamp_libclang_path'])
     idx = cindex.Index.create()
-    context = {}  # {'filepath' : (tu, tick)}
     cdb = compilation_database.CompilationDatabase.from_dir(nvim.call('getcwd'), nvim.vars['clamp_heuristic_compile_args'])
     highlight.occurrences_pri = nvim.vars['clamp_occurrence_priority']
     highlight.syntax_pri = nvim.vars['clamp_syntax_priority']
@@ -97,26 +137,15 @@ def engine_start():
     nvim.call('ClampNotifyParseHighlight')
 
     while (_is_running):
-        event = nvim.session.next_message()
-        print event
-        if event[1] == 'parse&highlight':
-            filepath = event[2][0]
-            begin_line = event[2][1]
-            end_line = event[2][2]
-
-            changedtick = int(nvim.eval('b:changedtick'))
-            if filepath not in context or context[filepath][1] != changedtick:
-                unsaved = []
-                for buffer in nvim.buffers:
-                    unsaved.append((buffer.name, '\n'.join(buffer)))
-
-                parse(idx, context, unsaved, cdb, filepath, changedtick, global_args)
-
-            tu, tick = context[filepath]
-            highlight(nvim, tu, filepath, begin_line, end_line, blacklist)
+        nvim.session.run(request_cb, notify_cb, None)
 
 
-def parse(idx, context, unsaved, cdb, filepath, changedtick, global_args):
+def parse(unsaved, filepath, changedtick):
+    global idx
+    global context
+    global cdb
+    global global_args
+
     args = None
     if cdb:
         args = cdb.get_useful_args(filepath) + global_args
@@ -128,7 +157,10 @@ def parse(idx, context, unsaved, cdb, filepath, changedtick, global_args):
      options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
     context[filepath] = (new_tu, changedtick)
 
-def highlight(nvim, tu, filepath, begin_line, end_line, blacklist):
+def highlight(tu, filepath, begin_line, end_line):
+    global nvim
+    global blacklist
+
     file = tu.get_file(filepath)
     begin = cindex.SourceLocation.from_position(
         tu, file, line=begin_line, column=1)
