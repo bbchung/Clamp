@@ -42,7 +42,7 @@ fun! ClampHighlight(filepath, matches, priority) " {'GROUP1' : [[],[]], 'GROUP2'
     endfor
 endf
 
-fun! s:shutdown()
+fun! Shutdown()
     let a:wnr = winnr()
     windo call s:clear_match_by_priorities([g:clamp_occurrence_priority, g:clamp_syntax_priority]) 
     exe a:wnr.'wincmd w'
@@ -70,7 +70,7 @@ endf
 
 fun! s:notify_shutdown()
     if exists('g:clamp_channel')
-        call rpcrequest(g:clamp_channel, 'shutdown')
+        call rpcnotify(g:clamp_channel, 'shutdown')
     endif
 endf
 

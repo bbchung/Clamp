@@ -83,37 +83,6 @@ def _get_syntax_group(cursor_kind, type_kind, blacklist):
     return group
 
 
-def notify_cb(name, args):
-    global nvim
-    global context
-
-    if name == 'parse&highlight':
-        filepath = args[0]
-        begin_line = args[1]
-        end_line = args[2]
-
-        changedtick = int(nvim.eval('b:changedtick'))
-        if filepath not in context or context[filepath][1] != changedtick:
-            unsaved = []
-            for buffer in nvim.buffers:
-                unsaved.append((buffer.name, '\n'.join(buffer)))
-
-            parse(unsaved, filepath, changedtick)
-
-        tu, tick = context[filepath]
-        highlight(tu, filepath, begin_line, end_line)
-
-def request_cb(name, args):
-    global _is_running
-    global nvim
-
-    if name == 'shutdown':
-        nvim.call('s:shutdown')
-        nvim.session.stop()
-        _is_running = False
-
-    return True
-
 def engine_start():
     global _is_running
     global nvim
@@ -137,7 +106,27 @@ def engine_start():
     nvim.call('ClampNotifyParseHighlight')
 
     while (_is_running):
-        nvim.session.run(request_cb, notify_cb, None)
+        event = nvim.session.next_message()
+        print event
+        if event[1] == 'parse&highlight':
+            filepath = event[2][0]
+            begin_line = event[2][1]
+            end_line = event[2][2]
+
+            changedtick = int(nvim.eval('b:changedtick'))
+            if filepath not in context or context[filepath][1] != changedtick:
+                unsaved = []
+                for buffer in nvim.buffers:
+                    unsaved.append((buffer.name, '\n'.join(buffer)))
+
+                parse(unsaved, filepath, changedtick)
+
+            tu, tick = context[filepath]
+            highlight(tu, filepath, begin_line, end_line)
+        elif event[1] == 'shutdown':
+            nvim.call('Shutdown')
+            nvim.session.stop()
+            _is_running = False
 
 
 def parse(unsaved, filepath, changedtick):
