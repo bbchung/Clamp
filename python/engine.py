@@ -41,6 +41,7 @@ CUSTOM_SYNTAX_GROUP = {
     },
 }
 
+
 def _get_default_syn(cursor_kind):
     if cursor_kind.is_preprocessing():
         return 'clampPrepro'
@@ -83,6 +84,7 @@ def engine_start():
 
     context = {}  # {'filepath' : [tu, tick]}
 
+    # nvim = attach('stdio')
     nvim = attach('socket', path=sys.argv[1])
     nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
     print 'channel=%d' % nvim.channel_id
@@ -93,35 +95,58 @@ def engine_start():
     occurrences_pri = nvim.vars['clamp_occurrence_priority']
     syntax_pri = nvim.vars['clamp_syntax_priority']
 
-    parse.idx = cindex.Index.create()
-    parse.cdb = compilation_database.CompilationDatabase.from_dir(nvim.call('getcwd'), nvim.vars['clamp_heuristic_compile_args'])
-    parse.global_args = nvim.vars['clamp_compile_args']
+    _parse.idx = cindex.Index.create()
+    _parse.cdb = compilation_database.CompilationDatabase.from_dir(
+        nvim.call('getcwd'), nvim.vars['clamp_heuristic_compile_args'])
+    _parse.global_args = nvim.vars['clamp_compile_args']
 
-    highlight.blacklist = nvim.vars['clamp_highlight_blacklist']
+    _highlight.blacklist = nvim.vars['clamp_highlight_blacklist']
 
     nvim.call('ClampNotifyParseHighlight')
 
+    unsaved = []
     while (_is_running):
         event = nvim.session.next_message()
-        print event
+        if not event:
+            continue
+
+        print 'event', event[1]
         if event[1] == 'parse&highlight':
+            filepath = event[2][0]
+            changedtick = event[2][1]
+            bufline = event[2][2]
+            begin_line = event[2][3]
+            end_line = event[2][4]
+
+            _parse_if_need(filepath, bufline, unsaved, context, changedtick)
+
+            tu, tick = context[filepath]
+            symbol = clamp_helper.get_vim_symbol(
+                nvim, clamp_helper.get_vim_cursor(nvim, tu))
+            syntax, occurrence = _highlight(
+                tu, filepath, begin_line, end_line, symbol)
+
+            nvim.call('ClampHighlight', filepath, [
+                      [syntax_pri, syntax], [occurrences_pri, occurrence]])
+
+        elif event[1] == 'parse':
+            filepath = event[2][0]
+            changedtick = event[2][1]
+            bufline = event[2][2]
+
+            _parse_if_need(filepath, bufline, unsaved, context, changedtick)
+
+        elif event[1] == 'highlight':
             filepath = event[2][0]
             begin_line = event[2][1]
             end_line = event[2][2]
-            changedtick = event[2][3] 
+            symbol = clamp_helper.get_vim_symbol(
+                nvim, clamp_helper.get_vim_cursor(nvim, tu))
+            syntax, occurrence = _highlight(
+                tu, filepath, begin_line, end_line, symbol)
 
-            if filepath not in context or context[filepath][1] != changedtick:
-                unsaved = []
-                for buffer in nvim.buffers:
-                    unsaved.append((buffer.name, '\n'.join(buffer)))
-
-                context[filepath] = parse(unsaved, filepath, changedtick)
-
-            tu, tick = context[filepath]
-            symbol = clamp_helper.get_vim_symbol(nvim, clamp_helper.get_vim_cursor(nvim, tu))
-            syntax, occurrence = highlight(tu, filepath, begin_line, end_line, symbol)
-            nvim.call('ClampHighlight', filepath, syntax, syntax_pri)
-            nvim.call('ClampHighlight', filepath, occurrence, occurrences_pri)
+            nvim.call('ClampHighlight', filepath, [
+                      (syntax_pri, syntax), (occurrences_pri, occurrence)])
 
         elif event[1] == 'shutdown':
             nvim.call('Shutdown')
@@ -130,19 +155,31 @@ def engine_start():
             event[3].send('ok')
 
 
-def parse(unsaved, filepath, changedtick):
+def _parse(unsaved, filepath):
     args = None
-    if parse.cdb:
-        args = parse.cdb.get_useful_args(filepath) + parse.global_args
+    if _parse.cdb:
+        args = _parse.cdb.get_useful_args(filepath) + _parse.global_args
 
-    new_tu = parse.idx.parse(
-        filepath,
-        args,
-     unsaved,
-     options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-    return new_tu, changedtick
+    return _parse.idx.parse(filepath, args, unsaved, options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
-def highlight(tu, filepath, begin_line, end_line, symbol):
+
+def _parse_if_need(filepath, bufline, unsaved, context, changedtick):
+    for file, buffer in unsaved:
+        if file == filepath:
+            unsaved.remove((file, buffer))
+
+    unsaved.append((filepath, '\n'.join(bufline)))
+
+    if filepath not in context:
+        context[filepath] = [_parse(unsaved, filepath), changedtick]
+    elif context[filepath][1] != changedtick:
+        context[filepath][0].reparse(
+            unsaved,
+            options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+        context[filepath][1] = changedtick
+
+
+def _highlight(tu, filepath, begin_line, end_line, symbol):
     file = tu.get_file(filepath)
     begin = cindex.SourceLocation.from_position(
         tu, file, line=begin_line, column=1)
@@ -152,8 +189,7 @@ def highlight(tu, filepath, begin_line, end_line, symbol):
         extent=cindex.SourceRange.from_locations(begin, end))
 
     syntax = {}
-    occurrence = {'clampOccurrences':[]}
-
+    occurrence = {'clampOccurrences': []}
 
     for token in tokens:
         if token.kind.value != 2:  # no keyword, comment
@@ -163,7 +199,10 @@ def highlight(tu, filepath, begin_line, end_line, symbol):
         cursor._tu = tu
 
         pos = [token.location.line, token.location.column, len(token.spelling)]
-        group = _get_syntax_group(cursor.kind, cursor.type.kind, highlight.blacklist)
+        group = _get_syntax_group(
+            cursor.kind,
+            cursor.type.kind,
+            _highlight.blacklist)
 
         if group:
             if group not in syntax:
@@ -176,6 +215,5 @@ def highlight(tu, filepath, begin_line, end_line, symbol):
             occurrence['clampOccurrences'].append(pos)
 
     return syntax, occurrence
-
 
 engine_start()

@@ -12,33 +12,35 @@ endif
 let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\' )
 execute('source '. s:script_folder_path . '/../syntax/clamp.vim')
 
-fun! ClampHighlight(filepath, matches, priority) " {'GROUP1' : [[],[]], 'GROUP2' : [[],[]]}
+fun! ClampHighlight(filepath, highlights)
     if a:filepath != expand('%:p')  
         return
     endif
 
-    for m in getmatches()
-        if a:priority == m['priority']
-            call matchdelete(m['id'])
-        endif
-    endfor
-
-    for [group, all_pos] in items(a:matches)
-        let s:count = 0
-        let s:match8 = []
-
-        for pos in all_pos
-            call add(s:match8, pos)
-            let s:count = s:count + 1
-            if s:count == 8
-                call matchaddpos(group, s:match8, a:priority)
-
-                let s:count = 0
-                let s:match8 = []
+    for [priority, matches] in a:highlights
+        for m in getmatches()
+            if priority == m['priority']
+                call matchdelete(m['id'])
             endif
         endfor
 
-        call matchaddpos(group, s:match8, a:priority)
+        for [group, all_pos] in items(matches)
+            let s:count = 0
+            let s:match8 = []
+
+            for pos in all_pos
+                call add(s:match8, pos)
+                let s:count = s:count + 1
+                if s:count == 8
+                    call matchaddpos(group, s:match8, priority)
+
+                    let s:count = 0
+                    let s:match8 = []
+                endif
+            endfor
+
+            call matchaddpos(group, s:match8, priority)
+        endfor
     endfor
 endf
 
@@ -49,10 +51,6 @@ fun! Shutdown()
 
     silent! unlet g:clamp_channel
 
-    if exists('s:clamp_job')
-        call jobstop(s:clamp_job)
-        silent! unlet s:clamp_job
-    endif
 endf
 
 fun! s:clear_match_by_priorities(priorities)
@@ -65,12 +63,18 @@ endf
 
 fun! s:enable_clamp()
     call s:request_shutdown()
+    "let g:clamp_channel = rpcstart('python', [s:script_folder_path.'/../python/engine.py', v:servername])
     let s:clamp_job = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
 endf
 
 fun! s:request_shutdown()
     if exists('g:clamp_channel')
         silent! call rpcrequest(g:clamp_channel, 'shutdown')
+    endif
+
+    if exists('s:clamp_job')
+        call jobstop(s:clamp_job)
+        silent! unlet s:clamp_job
     endif
 endf
 
@@ -80,9 +84,31 @@ fun! ClampNotifyParseHighlight()
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), line('w0'), line('w$'), b:changedtick)
+        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), b:changedtick, getline(1,'$'), line('w0'), line('w$'))
     endif
 endf
+
+fun! ClampNotifyParse()
+    if index(['c', 'cpp', 'objc', 'objcpp'], &ft) == -1
+        return
+    endif
+
+    if exists('g:clamp_channel')
+        silent! call rpcnotify(g:clamp_channel, 'parse', expand('%:p'), b:changedtick, getline(1,'$'))
+    endif
+endf
+
+fun! ClampNotifyHighlight()
+    if index(['c', 'cpp', 'objc', 'objcpp'], &ft) == -1
+        return
+    endif
+
+    if exists('g:clamp_channel')
+        silent! call rpcnotify(g:clamp_channel, 'highlight', expand('%:p'), line('w0'), line('w$'))
+    endif
+endf
+
+
 
 let g:clamp_occurrence_priority = get(g:, 'clamp_occurrence_priority', 2)
 let g:clamp_syntax_priority = get(g:, 'clamp_syntax_priority', 1)
@@ -101,6 +127,8 @@ if g:clamp_autostart
     au VimEnter * call s:enable_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
-au TextChanged,TextChangedI,CursorMoved,CursorMovedI * call ClampNotifyParseHighlight()
+au TextChanged * call ClampNotifyParseHighlight()
+au CursorMoved * call ClampNotifyHighlight()
+au TextChangedI * call ClampNotifyParse()
 
 let g:loaded_clamp=1
