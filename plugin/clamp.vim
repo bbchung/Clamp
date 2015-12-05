@@ -129,6 +129,6 @@ endif
 au VimLeave * silent! call s:request_shutdown()
 au TextChanged * call ClampNotifyParseHighlight()
 au CursorMoved * call ClampNotifyHighlight()
-au TextChangedI * call ClampNotifyParse()
+"au TextChangedI * call ClampNotifyParse()
 
 let g:loaded_clamp=1
