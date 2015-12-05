@@ -109,8 +109,8 @@ def engine_start():
             filepath = event[2][0]
             begin_line = event[2][1]
             end_line = event[2][2]
+            changedtick = event[2][3] 
 
-            changedtick = int(nvim.eval('b:changedtick'))
             if filepath not in context or context[filepath][1] != changedtick:
                 unsaved = []
                 for buffer in nvim.buffers:

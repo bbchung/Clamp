@@ -80,7 +80,7 @@ fun! ClampNotifyParseHighlight()
     endif
 
     if exists('g:clamp_channel')
-        call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), line('w0'), line('w$'))
+        call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), line('w0'), line('w$'), b:changedtick)
     endif
 endf
 
