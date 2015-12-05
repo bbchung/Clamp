@@ -70,7 +70,7 @@ endf
 
 fun! s:request_shutdown()
     if exists('g:clamp_channel')
-        call rpcrequest(g:clamp_channel, 'shutdown')
+        silent! call rpcrequest(g:clamp_channel, 'shutdown')
     endif
 endf
 
@@ -80,7 +80,7 @@ fun! ClampNotifyParseHighlight()
     endif
 
     if exists('g:clamp_channel')
-        call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), line('w0'), line('w$'), b:changedtick)
+        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), line('w0'), line('w$'), b:changedtick)
     endif
 endf
 

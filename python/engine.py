@@ -4,7 +4,6 @@ import compilation_database
 import clamp_helper
 import sys
 
-_is_running = False
 
 CUSTOM_SYNTAX_GROUP = {
     cindex.CursorKind.INCLUSION_DIRECTIVE: 'clampInclusionDirective',
@@ -82,7 +81,7 @@ def engine_start():
 
     _is_running = True
 
-    context = {}  # {'filepath' : (tu, tick)}
+    context = {}  # {'filepath' : [tu, tick]}
 
     nvim = attach('socket', path=sys.argv[1])
     nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
@@ -141,7 +140,7 @@ def parse(unsaved, filepath, changedtick):
         args,
      unsaved,
      options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-    return (new_tu, changedtick)
+    return new_tu, changedtick
 
 def highlight(tu, filepath, begin_line, end_line, symbol):
     file = tu.get_file(filepath)
