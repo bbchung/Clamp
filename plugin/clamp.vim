@@ -119,6 +119,7 @@ let g:clamp_enable_cross_rename = get(g:, 'clamp_enable_cross_rename', 1)
 let g:clamp_highlight_blacklist = get(g:, 'clamp_highlight_blacklist', ['clampInclusionDirective'])
 let g:clamp_heuristic_compile_args = get(g:, 'clamp_heuristic_compile_args', 1)
 let g:clamp_compile_args = get(g:, 'clamp_compile_args', [])
+let g:clamp_highlight_mode = get(g:, 'clamp_highlight_mode', 0)
 
 command! ClampStart call s:enable_clamp()
 command! ClampShutdown call s:request_shutdown()
@@ -129,6 +130,8 @@ endif
 au VimLeave * silent! call s:request_shutdown()
 au TextChanged,CursorMoved * call ClampNotifyParseHighlight()
 "au CursorMoved * call ClampNotifyHighlight()
-"au TextChangedI * call ClampNotifyParse()
+if (g:clamp_highlight_mode == 1)
+    au TextChangedI * call ClampNotifyParseHighlight()
+endif
 
 let g:loaded_clamp=1
