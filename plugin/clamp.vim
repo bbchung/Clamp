@@ -110,8 +110,8 @@ endf
 
 
 
-let g:clamp_occurrence_priority = get(g:, 'clamp_occurrence_priority', 2)
-let g:clamp_syntax_priority = get(g:, 'clamp_syntax_priority', 1)
+let g:clamp_occurrence_priority = get(g:, 'clamp_occurrence_priority', -1)
+let g:clamp_syntax_priority = get(g:, 'clamp_syntax_priority', -2)
 let g:clamp_autostart = get(g:, 'clamp_autostart', 1)
 let g:clamp_libclang_path = get(g:, 'clamp_libclang_path', '')
 let g:clamp_rename_prompt_level = get(g:, 'clamp_rename_prompt_level', 1)
