@@ -64,13 +64,13 @@ fun! s:clear_match_by_priorities(priorities)
 endf
 
 fun! s:enable_clamp()
-    call s:notify_shutdown()
+    call s:request_shutdown()
     let s:clamp_job = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
 endf
 
-fun! s:notify_shutdown()
+fun! s:request_shutdown()
     if exists('g:clamp_channel')
-        call rpcnotify(g:clamp_channel, 'shutdown')
+        call rpcrequest(g:clamp_channel, 'shutdown')
     endif
 endf
 
@@ -95,12 +95,12 @@ let g:clamp_heuristic_compile_args = get(g:, 'clamp_heuristic_compile_args', 1)
 let g:clamp_compile_args = get(g:, 'clamp_compile_args', [])
 
 command! ClampStart call s:enable_clamp()
-command! ClampShutdown call s:notify_shutdown()
+command! ClampShutdown call s:request_shutdown()
 
 if g:clamp_autostart
     au VimEnter * call s:enable_clamp()
 endif
-
+au VimLeave * silent! call s:request_shutdown()
 au TextChanged,TextChangedI,CursorMoved,CursorMovedI * call ClampNotifyParseHighlight()
 
 let g:loaded_clamp=1

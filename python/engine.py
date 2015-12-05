@@ -5,12 +5,6 @@ import clamp_helper
 import sys
 
 _is_running = False
-nvim = None
-context = {}  # {'filepath' : (tu, tick)}
-idx = None
-cdb = None
-global_args = None
-blacklist = None
 
 CUSTOM_SYNTAX_GROUP = {
     cindex.CursorKind.INCLUSION_DIRECTIVE: 'clampInclusionDirective',
@@ -85,24 +79,27 @@ def _get_syntax_group(cursor_kind, type_kind, blacklist):
 
 def engine_start():
     global _is_running
-    global nvim
-    global idx
-    global cdb
-    global global_args
-    global blacklist
 
     _is_running = True
+
+    context = {}  # {'filepath' : (tu, tick)}
+
     nvim = attach('socket', path=sys.argv[1])
     nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
-    cindex.Config.set_library_file(nvim.vars['clamp_libclang_path'])
-    idx = cindex.Index.create()
-    cdb = compilation_database.CompilationDatabase.from_dir(nvim.call('getcwd'), nvim.vars['clamp_heuristic_compile_args'])
-    highlight.occurrences_pri = nvim.vars['clamp_occurrence_priority']
-    highlight.syntax_pri = nvim.vars['clamp_syntax_priority']
-    blacklist = nvim.vars['clamp_highlight_blacklist']
-    global_args = nvim.vars['clamp_compile_args']
     print 'channel=%d' % nvim.channel_id
-    print 'libclang=%s' % nvim.vars['clamp_libclang_path']
+
+    cindex.Config.set_library_file(nvim.vars['clamp_libclang_path'])
+    print 'libclang=%s' % cindex.Config.library_file
+
+    occurrences_pri = nvim.vars['clamp_occurrence_priority']
+    syntax_pri = nvim.vars['clamp_syntax_priority']
+
+    parse.idx = cindex.Index.create()
+    parse.cdb = compilation_database.CompilationDatabase.from_dir(nvim.call('getcwd'), nvim.vars['clamp_heuristic_compile_args'])
+    parse.global_args = nvim.vars['clamp_compile_args']
+
+    highlight.blacklist = nvim.vars['clamp_highlight_blacklist']
+
     nvim.call('ClampNotifyParseHighlight')
 
     while (_is_running):
@@ -119,37 +116,34 @@ def engine_start():
                 for buffer in nvim.buffers:
                     unsaved.append((buffer.name, '\n'.join(buffer)))
 
-                parse(unsaved, filepath, changedtick)
+                context[filepath] = parse(unsaved, filepath, changedtick)
 
             tu, tick = context[filepath]
-            highlight(tu, filepath, begin_line, end_line)
+            symbol = clamp_helper.get_vim_symbol(nvim, clamp_helper.get_vim_cursor(nvim, tu))
+            syntax, occurrence = highlight(tu, filepath, begin_line, end_line, symbol)
+            nvim.call('ClampHighlight', filepath, syntax, syntax_pri)
+            nvim.call('ClampHighlight', filepath, occurrence, occurrences_pri)
+
         elif event[1] == 'shutdown':
             nvim.call('Shutdown')
             nvim.session.stop()
             _is_running = False
+            event[3].send('ok')
 
 
 def parse(unsaved, filepath, changedtick):
-    global idx
-    global context
-    global cdb
-    global global_args
-
     args = None
-    if cdb:
-        args = cdb.get_useful_args(filepath) + global_args
+    if parse.cdb:
+        args = parse.cdb.get_useful_args(filepath) + parse.global_args
 
-    new_tu = idx.parse(
+    new_tu = parse.idx.parse(
         filepath,
         args,
      unsaved,
      options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-    context[filepath] = (new_tu, changedtick)
+    return (new_tu, changedtick)
 
-def highlight(tu, filepath, begin_line, end_line):
-    global nvim
-    global blacklist
-
+def highlight(tu, filepath, begin_line, end_line, symbol):
     file = tu.get_file(filepath)
     begin = cindex.SourceLocation.from_position(
         tu, file, line=begin_line, column=1)
@@ -161,7 +155,6 @@ def highlight(tu, filepath, begin_line, end_line):
     syntax = {}
     occurrence = {'clampOccurrences':[]}
 
-    symbol = clamp_helper.get_vim_symbol(nvim, clamp_helper.get_vim_cursor(nvim, tu))
 
     for token in tokens:
         if token.kind.value != 2:  # no keyword, comment
@@ -171,7 +164,7 @@ def highlight(tu, filepath, begin_line, end_line):
         cursor._tu = tu
 
         pos = [token.location.line, token.location.column, len(token.spelling)]
-        group = _get_syntax_group(cursor.kind, cursor.type.kind, blacklist)
+        group = _get_syntax_group(cursor.kind, cursor.type.kind, highlight.blacklist)
 
         if group:
             if group not in syntax:
@@ -183,8 +176,7 @@ def highlight(tu, filepath, begin_line, end_line):
         if symbol and token_symbol and symbol == token_symbol and token.spelling == token_symbol.spelling:
             occurrence['clampOccurrences'].append(pos)
 
-    nvim.call('ClampHighlight', filepath, syntax, highlight.syntax_pri)
-    nvim.call('ClampHighlight', filepath, occurrence, highlight.occurrences_pri)
+    return syntax, occurrence
 
 
 engine_start()
