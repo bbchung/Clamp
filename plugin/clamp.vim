@@ -84,7 +84,7 @@ fun! ClampNotifyParseHighlight()
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), b:changedtick, getline(1,'$'), line('w0'), line('w$'))
+        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), line('w0'), line('w$'))
     endif
 endf
 
@@ -94,7 +94,7 @@ fun! ClampNotifyParse()
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse', expand('%:p'), b:changedtick, getline(1,'$'))
+        silent! call rpcnotify(g:clamp_channel, 'parse', expand('%:p'))
     endif
 endf
 
@@ -127,8 +127,8 @@ if g:clamp_autostart
     au VimEnter * call s:enable_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
-au TextChanged * call ClampNotifyParseHighlight()
-au CursorMoved * call ClampNotifyHighlight()
+au TextChanged,CursorMoved * call ClampNotifyParseHighlight()
+"au CursorMoved * call ClampNotifyHighlight()
 "au TextChangedI * call ClampNotifyParse()
 
 let g:loaded_clamp=1

@@ -113,40 +113,61 @@ def engine_start():
         print 'event', event[1]
         if event[1] == 'parse&highlight':
             filepath = event[2][0]
-            changedtick = event[2][1]
-            bufline = event[2][2]
-            begin_line = event[2][3]
-            end_line = event[2][4]
+            begin_line = event[2][1]
+            end_line = event[2][2]
 
-            _parse_if_need(filepath, bufline, unsaved, context, changedtick)
+            changedtick = nvim.eval('b:changedtick')
+            for buffer in nvim.buffers:
+                if buffer.name == filepath:
+                    _parse_if_need(
+                        filepath,
+                        buffer,
+                        unsaved,
+                        context,
+                        changedtick)
 
-            tu, tick = context[filepath]
-            symbol = clamp_helper.get_vim_symbol(
-                nvim, clamp_helper.get_vim_cursor(nvim, tu))
-            syntax, occurrence = _highlight(
-                tu, filepath, begin_line, end_line, symbol)
+                    tu, tick = context[filepath]
+                    symbol = clamp_helper.get_vim_symbol(
+                        nvim, clamp_helper.get_vim_cursor(nvim, tu))
+                    syntax, occurrence = _highlight(
+                        tu, filepath, begin_line, end_line, symbol)
 
-            nvim.call('ClampHighlight', filepath, [
-                      [syntax_pri, syntax], [occurrences_pri, occurrence]])
+                    nvim.call('ClampHighlight', filepath, [
+                              [syntax_pri, syntax], [occurrences_pri, occurrence]])
+
+                    break
 
         elif event[1] == 'parse':
             filepath = event[2][0]
-            changedtick = event[2][1]
-            bufline = event[2][2]
+            changedtick = nvim.eval('b:changedtick')
 
-            _parse_if_need(filepath, bufline, unsaved, context, changedtick)
+            for buffer in nvim.buffers:
+                if buffer.name == filepath:
+                    _parse_if_need(
+                        filepath,
+                        buffer,
+                        unsaved,
+                        context,
+                        changedtick)
+
+                    break
 
         elif event[1] == 'highlight':
             filepath = event[2][0]
             begin_line = event[2][1]
             end_line = event[2][2]
-            symbol = clamp_helper.get_vim_symbol(
-                nvim, clamp_helper.get_vim_cursor(nvim, tu))
-            syntax, occurrence = _highlight(
-                tu, filepath, begin_line, end_line, symbol)
 
-            nvim.call('ClampHighlight', filepath, [
-                      (syntax_pri, syntax), (occurrences_pri, occurrence)])
+            for buffer in nvim.buffers:
+                if buffer.name == filepath:
+                    tu, tick = context[filepath]
+
+                    symbol = clamp_helper.get_vim_symbol(
+                        nvim, clamp_helper.get_vim_cursor(nvim, tu))
+                    syntax, occurrence = _highlight(
+                        tu, filepath, begin_line, end_line, symbol)
+
+                    nvim.call('ClampHighlight', filepath, [
+                              (syntax_pri, syntax), (occurrences_pri, occurrence)])
 
         elif event[1] == 'shutdown':
             nvim.call('Shutdown')
@@ -181,6 +202,10 @@ def _parse_if_need(filepath, bufline, unsaved, context, changedtick):
 
 def _highlight(tu, filepath, begin_line, end_line, symbol):
     file = tu.get_file(filepath)
+
+    if not file:
+        return None, None
+
     begin = cindex.SourceLocation.from_position(
         tu, file, line=begin_line, column=1)
     end = cindex.SourceLocation.from_position(
