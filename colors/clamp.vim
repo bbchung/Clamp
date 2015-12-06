@@ -21,8 +21,8 @@ hi DiffDelete term=bold cterm=bold ctermbg=152 ctermfg=fg gui=bold guibg=#afd7d7
 hi DiffText term=reverse cterm=bold ctermbg=1 ctermfg=fg gui=bold guibg=#800000 guifg=fg
 hi Cursor term=NONE cterm=NONE ctermbg=NONE ctermfg=NONE gui=NONE guibg=None guifg=None
 hi CursorColumn term=NONE cterm=NONE ctermbg=16 ctermfg=NONE gui=NONE guibg=#1c1c1c guifg=fg
-hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE gui=NONE guibg=#1c1c1c guifg=fg
-hi CursorLineNr term=underline cterm=NONE ctermbg=bg ctermfg=130 gui=NONE guibg=#1c1c1c guifg=fg
+hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE gui=NONE guibg=#000000 guifg=fg
+hi CursorLineNr term=underline cterm=NONE ctermbg=bg ctermfg=130 gui=NONE guibg=None guifg=#CD9366
 hi LineNr term=underline cterm=NONE ctermbg=NONE ctermfg=241 gui=NONE guibg=None guifg=#605958
 hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251 gui=NONE guibg=#292929 guifg=None
 hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg gui=NONE guibg=#588080 guifg=None
@@ -37,7 +37,7 @@ hi Title term=bold cterm=bold ctermbg=bg ctermfg=71 gui=bold guibg=bg guifg=#70b
 hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE gui=NONE guibg=#3E3E3E guifg=fg
 hi VisualNOS term=bold cterm=bold,underline ctermbg=234 ctermfg=fg gui=bold,underline guibg=bg guifg=fg
 hi SpecialKey term=bold cterm=NONE ctermbg=236 ctermfg=244 gui=NONE guibg=#343434 guifg=#808080
-hi NonText term=bold cterm=bold ctermbg=NONE ctermfg=244 gui=bold guibg=#090909 guifg=#808080
+hi NonText term=bold cterm=bold ctermbg=NONE ctermfg=244 gui=bold guibg=NONE guifg=#808080
 hi Directory term=bold cterm=NONE ctermbg=bg ctermfg=186 gui=NONE guibg=bg guifg=#dad085
 hi ErrorMsg term=NONE cterm=NONE ctermbg=196 ctermfg=231 gui=NONE guibg=Red guifg=White
 hi MoreMsg term=bold cterm=bold ctermbg=bg ctermfg=29 gui=bold guibg=bg guifg=SeaGreen
@@ -52,7 +52,7 @@ hi helpGraphic term=NONE cterm=NONE ctermbg=bg ctermfg=fg gui=NONE guibg=bg guif
 hi helpLeadBlank term=NONE cterm=NONE ctermbg=bg ctermfg=fg gui=NONE guibg=bg guifg=fg
 hi Question term=NONE cterm=bold ctermbg=bg ctermfg=29 gui=bold guibg=bg guifg=SeaGreen
 hi StringDelimiter term=NONE cterm=NONE ctermbg=bg ctermfg=59 gui=NONE guibg=bg guifg=#556633
-hi NONE term=NONE cterm=NONE ctermbg=bg ctermfg=fg gui=NONE guibg=bg guifg=fg
+hi NONE term=NONE cterm=NONE ctermbg=None ctermfg=None gui=NONE guibg=NONE guifg=None
 hi WarningMsg term=NONE cterm=NONE ctermbg=bg ctermfg=220 gui=NONE guibg=bg guifg=Red
 hi WildMenu term=NONE cterm=NONE ctermbg=226 ctermfg=16 gui=NONE guibg=Yellow guifg=Black
 hi SignColumn term=NONE cterm=NONE ctermbg=59 ctermfg=145 gui=NONE guibg=#384048 guifg=#a0a8b0
@@ -77,15 +77,6 @@ hi Function term=NONE cterm=NONE ctermbg=None ctermfg=222 gui=NONE guibg=None gu
 hi StorageClass term=NONE cterm=NONE ctermbg=None ctermfg=179 gui=NONE guibg=None guifg=#c59f6f
 hi Structure term=NONE cterm=NONE ctermbg=None ctermfg=110 gui=NONE guibg=None guifg=#8fbfdc
 hi Delimiter term=NONE cterm=NONE ctermbg=None ctermfg=66 gui=NONE guibg=None guifg=#668799
-" }
-
-" Clighter {
-"hi clighterTypeRef term=NONE cterm=NONE ctermbg=NONE ctermfg=75 gui=NONE guibg=#090909 guifg=#dadada
-"hi clighterStructDecl term=NONE cterm=NONE ctermbg=NONE ctermfg=NONE gui=NONE guibg=#090909 guifg=#dadada
-"hi clighterClassDecl term=NONE cterm=NONE ctermbg=NONE ctermfg=NONE gui=NONE guibg=#090909 guifg=#dadada
-"hi clighterEnumDecl term=NONE cterm=NONE ctermbg=NONE ctermfg=75 gui=NONE guibg=#090909 guifg=#dadada
-"hi clighterDeclRefExprEnum term=NONE cterm=NONE ctermbg=NONE ctermfg=75 gui=NONE guibg=#090909 guifg=#dadada
-"hi clighterCursorDefRef term=NONE cterm=NONE ctermbg=60 ctermfg=fg gui=NONE guibg=#090909 guifg=#dadada
 " }
 
 " VimL {
