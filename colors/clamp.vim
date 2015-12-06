@@ -9,11 +9,11 @@ let g:colors_name = expand("<sfile>:t:r")
 
 " default {
 hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 gui=NONE guibg=#151515 guifg=#e8e8d3
-hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg gui=None guibg=#4E4E4E guifg=None
-hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg gui=None guibg=#323266 guifg=None
+hi IncSearch term=NONE cterm=NONE ctermbg=60 ctermfg=fg gui=None guibg=#4F4F4F guifg=None
+hi Search term=NONE cterm=NONE ctermbg=24 ctermfg=fg gui=None guibg=#606000 guifg=None
 hi SpellLocal term=NONE cterm=bold,undercurl ctermbg=NONE ctermfg=30 gui=undercurl guibg=bg guifg=fg guisp=DarkCyan
-hi SpellBad term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=undercurl,italic guibg=#4D0000 guifg=None guisp=Red
-hi SpellCap term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=undercurl,italic guibg=#4D4D00 guifg=None guisp=Blue
+hi SpellBad term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=None guifg=#FF0000 guisp=Red
+hi SpellCap term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=None guifg=#FFFF00 guisp=Blue
 hi SpellRare term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=201 gui=undercurl guibg=bg guifg=fg guisp=Magenta
 hi DiffAdd term=bold cterm=NONE ctermbg=26 ctermfg=fg gui=NONE guibg=#005fd7 guifg=fg
 hi DiffChange term=bold cterm=NONE ctermbg=95 ctermfg=fg gui=NONE guibg=#875f5f guifg=fg
@@ -24,17 +24,17 @@ hi CursorColumn term=NONE cterm=NONE ctermbg=16 ctermfg=NONE gui=NONE guibg=#1c1
 hi CursorLine term=NONE cterm=NONE ctermbg=16 ctermfg=NONE gui=NONE guibg=#1c1c1c guifg=fg
 hi CursorLineNr term=underline cterm=NONE ctermbg=bg ctermfg=130 gui=NONE guibg=#1c1c1c guifg=fg
 hi LineNr term=underline cterm=NONE ctermbg=NONE ctermfg=241 gui=NONE guibg=None guifg=#605958
-hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251 gui=NONE guibg=#005f5f guifg=#d7ffff
-hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg gui=NONE guibg=#afffff guifg=#000000
-hi PmenuSbar term=NONE cterm=NONE ctermbg=250 ctermfg=fg gui=NONE guibg=Grey guifg=fg
-hi PmenuThumb term=NONE cterm=NONE ctermbg=237 ctermfg=NONE gui=reverse guibg=bg guifg=fg
+hi Pmenu term=NONE cterm=NONE ctermbg=237 ctermfg=251 gui=NONE guibg=#292929 guifg=None
+hi PmenuSel term=NONE cterm=NONE ctermbg=24 ctermfg=fg gui=NONE guibg=#588080 guifg=None
+hi PmenuSbar term=NONE cterm=NONE ctermbg=250 ctermfg=fg gui=NONE guibg=DarkGrey guifg=None
+hi PmenuThumb term=NONE cterm=NONE ctermbg=237 ctermfg=NONE gui=None guibg=#606060 guifg=None
 hi StatusLine term=reverse,bold cterm=NONE ctermbg=235 ctermfg=229 gui=italic guibg=#1c1c1c guifg=#ffffaf
 hi StatusLineNC term=reverse cterm=NONE ctermbg=235 ctermfg=241 gui=italic guibg=#1c1c1c guifg=#626262
 hi VertSplit term=reverse cterm=NONE ctermbg=NONE ctermfg=242 gui=None guibg=None guifg=#605958
 hi Folded term=NONE cterm=italic ctermbg=235 ctermfg=109 gui=italic guibg=#121212 guifg=#1c1c1c
 hi FoldColumn term=NONE cterm=NONE ctermbg=235 ctermfg=145 gui=NONE guibg=#384048 guifg=#a0a8b0
 hi Title term=bold cterm=bold ctermbg=bg ctermfg=71 gui=bold guibg=bg guifg=#70b950
-hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE gui=NONE guibg=#404040 guifg=fg
+hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE gui=NONE guibg=#3E3E3E guifg=fg
 hi VisualNOS term=bold cterm=bold,underline ctermbg=234 ctermfg=fg gui=bold,underline guibg=bg guifg=fg
 hi SpecialKey term=bold cterm=NONE ctermbg=236 ctermfg=244 gui=NONE guibg=#343434 guifg=#808080
 hi NonText term=bold cterm=bold ctermbg=NONE ctermfg=244 gui=bold guibg=#090909 guifg=#808080
@@ -45,7 +45,7 @@ hi ModeMsg term=bold cterm=bold ctermbg=bg ctermfg=fg gui=bold guibg=bg guifg=fg
 hi TabLine term=underline cterm=NONE ctermbg=145 ctermfg=16 gui=italic guibg=#b0b8c0 guifg=black
 hi TabLineSel term=bold cterm=bold ctermbg=255 ctermfg=16 gui=bold,italic guibg=#f0f0f0 guifg=black
 hi TabLineFill term=reverse cterm=NONE ctermbg=103 ctermfg=bg gui=reverse guibg=bg guifg=#9098a0
-hi ColorColumn term=reverse cterm=NONE ctermbg=23 ctermfg=fg gui=NONE guibg=LightRed guifg=fg
+hi ColorColumn term=reverse cterm=NONE ctermbg=23 ctermfg=fg gui=NONE guibg=#4b5a00 guifg=fg
 hi MatchParen term=reverse cterm=bold ctermbg=108 ctermfg=231 gui=bold guibg=#80a090 guifg=white
 hi helpNormal term=NONE cterm=NONE ctermbg=bg ctermfg=fg gui=NONE guibg=bg guifg=fg
 hi helpGraphic term=NONE cterm=NONE ctermbg=bg ctermfg=fg gui=NONE guibg=bg guifg=fg
