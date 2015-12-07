@@ -55,7 +55,7 @@ hi StringDelimiter term=NONE cterm=NONE ctermbg=bg ctermfg=59 gui=NONE guibg=bg 
 hi NONE term=NONE cterm=NONE ctermbg=None ctermfg=None gui=NONE guibg=NONE guifg=None
 hi WarningMsg term=NONE cterm=NONE ctermbg=bg ctermfg=220 gui=NONE guibg=bg guifg=Red
 hi WildMenu term=NONE cterm=NONE ctermbg=226 ctermfg=16 gui=NONE guibg=Yellow guifg=Black
-hi SignColumn term=NONE cterm=NONE ctermbg=59 ctermfg=145 gui=NONE guibg=#384048 guifg=#a0a8b0
+hi SignColumn term=NONE cterm=NONE ctermbg=59 ctermfg=145 gui=NONE guibg=NONE guifg=#a0a8b0
 hi Conceal term=NONE cterm=NONE ctermbg=66 ctermfg=252 gui=NONE guibg=DarkGrey guifg=LightGrey
 " }
 
@@ -78,6 +78,16 @@ hi StorageClass term=NONE cterm=NONE ctermbg=None ctermfg=179 gui=NONE guibg=Non
 hi Structure term=NONE cterm=NONE ctermbg=None ctermfg=110 gui=NONE guibg=None guifg=#8fbfdc
 hi Delimiter term=NONE cterm=NONE ctermbg=None ctermfg=66 gui=NONE guibg=None guifg=#668799
 " }
+
+
+" syntastic {
+hi SyntasticErrorSign guifg=RED guibg=None
+hi SyntasticWarningSign  guifg=Yellow guibg=None
+hi SyntasticErrorLine guifg=NONE guibg=NONE
+hi SyntasticWarningLine guifg=None guibg=NONE
+hi SyntasticError term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=None guifg=#FF0000 guisp=Red
+hi SyntasticWarning term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=None guifg=#FFFF00 guisp=Blue
+"}
 
 " VimL {
 hi vimExtCmd term=NONE cterm=NONE ctermbg=bg ctermfg=fg gui=NONE guibg=bg guifg=fg
