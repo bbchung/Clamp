@@ -31,7 +31,7 @@ hi PmenuThumb term=NONE cterm=NONE ctermbg=237 ctermfg=NONE gui=None guibg=#6060
 hi StatusLine term=reverse,bold cterm=NONE ctermbg=235 ctermfg=229 gui=italic guibg=#1c1c1c guifg=#ffffaf
 hi StatusLineNC term=reverse cterm=NONE ctermbg=235 ctermfg=241 gui=italic guibg=#1c1c1c guifg=#626262
 hi VertSplit term=reverse cterm=NONE ctermbg=NONE ctermfg=242 gui=None guibg=None guifg=#605958
-hi Folded term=NONE cterm=italic ctermbg=235 ctermfg=109 gui=italic guibg=#121212 guifg=#1c1c1c
+hi Folded term=NONE cterm=italic ctermbg=235 ctermfg=109 gui=italic guibg=#272D33 guifg=#9FB7D0
 hi FoldColumn term=NONE cterm=NONE ctermbg=235 ctermfg=145 gui=NONE guibg=#384048 guifg=#a0a8b0
 hi Title term=bold cterm=bold ctermbg=bg ctermfg=71 gui=bold guibg=bg guifg=#70b950
 hi Visual term=reverse cterm=NONE ctermbg=237 ctermfg=NONE gui=NONE guibg=#3E3E3E guifg=fg
