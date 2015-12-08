@@ -125,7 +125,7 @@ command! ClampStart call s:enable_clamp()
 command! ClampShutdown call s:request_shutdown()
 
 if g:clamp_autostart
-    au VimEnter * call s:enable_clamp()
+""    au VimEnter * call s:enable_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
 au TextChanged,CursorMoved * call ClampNotifyParseHighlight()
