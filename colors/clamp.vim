@@ -79,7 +79,6 @@ hi Structure term=NONE cterm=NONE ctermbg=None ctermfg=110 gui=NONE guibg=None g
 hi Delimiter term=NONE cterm=NONE ctermbg=None ctermfg=66 gui=NONE guibg=None guifg=#668799
 " }
 
-
 " syntastic {
 hi SyntasticErrorSign guifg=RED guibg=None
 hi SyntasticWarningSign  guifg=Yellow guibg=None
@@ -87,6 +86,8 @@ hi SyntasticErrorLine guifg=NONE guibg=NONE
 hi SyntasticWarningLine guifg=None guibg=NONE
 hi SyntasticError term=reverse cterm=bold,undercurl ctermbg=NONE ctermfg=1 gui=bold,undercurl,italic guibg=None guifg=#FF0000 guisp=Red
 hi SyntasticWarning term=underline cterm=bold,undercurl ctermbg=NONE ctermfg=3 gui=bold,undercurl,italic guibg=None guifg=#FFFF00 guisp=Blue
+hi SyntasticStyleErrorSign guifg=#CD0000 guibg=None
+hi SyntasticStyleWarningSign  guifg=#cdcd00 guibg=None
 "}
 
 " VimL {
