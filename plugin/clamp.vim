@@ -173,7 +173,7 @@ if g:clamp_autostart
 endif
 au VimLeave * silent! call s:request_shutdown()
 au TextChanged,CursorMoved * call ClampNotifyParseHighlight()
-    au CursorMoved * call ClampNotifyHighlight()
+"au CursorMoved * call ClampNotifyHighlight()
 if (g:clamp_highlight_mode == 1)
     au TextChangedI * call ClampNotifyParseHighlight()
 endif
