@@ -179,7 +179,7 @@ def engine_start():
 
             usr = symbol.get_usr()
 
-            result = {}
+            result = {'old':symbol.spelling, 'renames':{}}
             symbols = []
             for filepath, [tu, tick] in context.iteritems() :
                 clamp_helper.search_cursor_by_usr(tu.cursor, usr, symbols)
@@ -190,9 +190,7 @@ def engine_start():
                 for sym in symbols:                                                                                                                                                                                                                                
                     clamp_helper.search_referenced_tokens(tu, sym, locations)      
 
-                result[filepath] = locations
-
-            result['old'] = symbol.spelling
+                result['renames'][filepath] = locations
 
             event[3].send(result);
 

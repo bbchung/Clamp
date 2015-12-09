@@ -122,19 +122,24 @@ fun! ClampRename()
 
     let l:wnr = winnr()
     let l:bufnr = bufnr("")
-    bufdo! call s:clamp_replace(s:result[expand('%:p')], s:old, s:new)
+    bufdo! call s:clamp_replace(s:result['renames'], s:old, s:new)
     exe l:wnr.'wincmd w'
     exe 'buffer '.l:bufnr
 endf
 
-fun! s:clamp_replace(locations, old, new)
+fun! s:clamp_replace(renames, old, new)
+    if !has_key(a:renames, expand('%:p'))
+        return
+    endif
+    let l:locations = a:renames[expand('%:p')]
+
     let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .expand('%:p'). "?", "&Yes\n&No", 1)
     if (l:choice == 2)
         return
     endif
 
     let l:pattern = ""
-    for [row, col] in a:locations
+    for [row, col] in l:locations
         if (!empty(l:pattern))
             let l:pattern = l:pattern . '\|'                                                                                                                                                                                                                           
         endif
