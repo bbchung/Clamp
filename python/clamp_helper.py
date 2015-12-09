@@ -13,7 +13,7 @@ def get_vim_symbol(nvim, cursor):
     return symbol
 
 def get_cursor(tu, filepath, row, col):
-    return cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(filepath), row, col + 1))
+    return cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(filepath), row, col))
 
 def get_vim_cursor(nvim, tu):
     row, col = nvim.current.window.cursor
@@ -57,7 +57,7 @@ def get_semantic_symbol(cursor):
         symbol = cursor.referenced
 
     if not symbol:
-        return None
+        symbol = cursor
 
     if symbol.kind == cindex.CursorKind.CONSTRUCTOR or symbol.kind == cindex.CursorKind.DESTRUCTOR:
         symbol = symbol.semantic_parent
@@ -68,6 +68,15 @@ def get_semantic_symbol(cursor):
 def get_spelling_or_displayname(cursor):
     return cursor.spelling if cursor.spelling else cursor.displayname
 
+def search_referenced_tokens_by_usr(tu, usr, result, spelling):
+    tokens = tu.cursor.get_tokens()
+    for token in tokens:
+        cursor = token.cursor
+        cursor._tu = tu
+
+        symbol = get_semantic_symbol(cursor)
+        if token.spelling == spelling and symbol and symbol.get_usr() == usr:
+            result.append((token.location.line, token.location.column))
 
 def search_referenced_tokens(tu, symbol, result):
     tokens = tu.cursor.get_tokens()

@@ -174,25 +174,24 @@ def engine_start():
                 continue
 
             symbol = clamp_helper.get_semantic_symbol(cursor)
+            result = {'old':symbol.spelling, 'renames':{}}
+
             if not symbol:
                 event[3].send({})
                 continue
 
             usr = symbol.get_usr()
 
-            result = {'old':symbol.spelling, 'renames':{}}
-            symbols = []
-            for filepath, [tu, tick] in context.iteritems() :
-                clamp_helper.search_cursor_by_usr(tu.cursor, usr, symbols)
-                if not symbols:
-                    continue
+            if usr:
+                for filepath, [tu, tick] in context.iteritems() :
+                    locations = []
+                    clamp_helper.search_referenced_tokens_by_usr(tu, usr, locations, symbol.spelling)
 
-                locations = []
-                for sym in symbols:                                                                                                                                                                                                                                
-                    clamp_helper.search_referenced_tokens(tu, sym, locations)      
-
-                result['renames'][filepath] = locations
-
+                    result['renames'][filepath] = locations
+            else:
+                clamp_helper.search_referenced_tokens(tu, symbol, locations)
+                
+                
             event[3].send(result);
 
         elif event[1] == 'shutdown':

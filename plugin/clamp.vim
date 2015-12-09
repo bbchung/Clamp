@@ -111,7 +111,7 @@ endf
 fun! ClampRename()
     let s:pos = getpos('.')
     let s:result = rpcrequest(g:clamp_channel, 'rename', expand('%:p'), s:pos[1], s:pos[2])
-    if empty(s:result)
+    if empty(s:result['renames'])
         return
     endif
 
@@ -119,7 +119,7 @@ fun! ClampRename()
     echohl WildMenu
     let s:new = input('Rename ' . s:old . ' : ', s:old)
     echohl None
-    if (empty(s:new))
+    if (empty(s:new) || s:old == s:new)
         return
     endif
 
@@ -131,7 +131,7 @@ fun! ClampRename()
 endf
 
 fun! s:clamp_replace(renames, old, new)
-    if !has_key(a:renames, expand('%:p'))
+    if (!has_key(a:renames, expand('%:p')) || empty(a:renames[expand('%:p')]))
         return
     endif
     let l:locations = a:renames[expand('%:p')]
