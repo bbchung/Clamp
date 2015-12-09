@@ -133,6 +133,7 @@ def engine_start():
 
         elif event[1] == 'parse':
             filepath = event[2][0]
+
             changedtick = nvim.eval('b:changedtick')
 
             for buffer in nvim.buffers:

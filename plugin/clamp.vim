@@ -119,6 +119,9 @@ fun! ClampRename()
     echohl WildMenu
     let s:new = input('Rename ' . s:old . ' : ', s:old)
     echohl None
+    if (empty(s:new))
+        return
+    endif
 
     let l:wnr = winnr()
     let l:bufnr = bufnr("")
