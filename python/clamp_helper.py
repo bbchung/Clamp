@@ -12,24 +12,20 @@ def get_vim_symbol(nvim, cursor):
 
     return symbol
 
+def get_cursor(tu, filepath, row, col):
+    return cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(filepath), row, col + 1))
 
 def get_vim_cursor(nvim, tu):
     row, col = nvim.current.window.cursor
 
-    try:
-        c = nvim.current.line[col]
-        if not c.isalnum() and c != '_':
-            return None
-    except:    
-        return None
+    # try:
+        # c = nvim.current.line[col]
+        # if not c.isalnum() and c != '_':
+            # return None
+    # except:    
+        # return None
 
-    return cindex.Cursor.from_location(
-        tu,
-        cindex.SourceLocation.from_position(
-            tu,
-            tu.get_file(nvim.current.buffer.name),
-            row,
-            col + 1))
+    return cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(nvim.current.buffer.name), row, col + 1))
 
 
 def is_vim_buffer_allowed(buf):
@@ -41,12 +37,12 @@ def is_global_symbol(symbol):
     ) or symbol.semantic_parent.kind != cindex.CursorKind.FUNCTION_DECL
 
 
-def search_cursors_by_usr(cursor, usr, result):
+def search_cursor_by_usr(cursor, usr, result):
     if cursor.get_usr() == usr and cursor not in result:
         result.append(cursor)
 
     for c in cursor.get_children():
-        search_cursors_by_usr(c, usr, result)
+        search_cursor_by_usr(c, usr, result)
 
 
 def get_semantic_symbol(cursor):
@@ -74,22 +70,16 @@ def get_spelling_or_displayname(cursor):
 
 
 def search_referenced_tokens(tu, symbol, result):
-    tokens = tu.get_tokens()
+    tokens = tu.cursor.get_tokens()
 
     for t in tokens:
         if t.kind.value != 2:
             continue
 
-        t_cursor = cindex.Cursor.from_location(
-            tu,
-            cindex.SourceLocation.from_position(
-                tu,
-                t.location.file,
-                t.location.line,
-                t.location.column))  # cursor under vim
+        t_cursor = t.cursor
+        t_cursor._tu = tu
 
         t_symbol = get_semantic_symbol(t_cursor)
 
         if t_symbol and t_symbol == symbol:
-            result.add(
-                (t.location.line, t.location.column, t.location.file.name))
+            result.append((t.location.line, t.location.column))

@@ -108,6 +108,45 @@ fun! ClampNotifyHighlight()
     endif
 endf
 
+fun! ClampRename()
+    let s:pos = getpos('.')
+    let s:result = rpcrequest(g:clamp_channel, 'rename', expand('%:p'), s:pos[1], s:pos[2])
+    if empty(s:result)
+        return
+    endif
+
+    let s:old = s:result['old']
+    echohl WildMenu
+    let s:new = input('Rename ' . s:old . ' : ', s:old)
+    echohl None
+
+    let l:wnr = winnr()
+    let l:bufnr = bufnr("")
+    bufdo! call s:clamp_replace(s:result[expand('%:p')], s:old, s:new)
+    exe l:wnr.'wincmd w'
+    exe 'buffer '.l:bufnr
+endf
+
+fun! s:clamp_replace(locations, old, new)
+    let l:choice = confirm("rename '". a:old ."' to '" .a:new. "' in " .expand('%:p'). "?", "&Yes\n&No", 1)
+    if (l:choice == 2)
+        return
+    endif
+
+    let l:pattern = ""
+    for [row, col] in a:locations
+        if (!empty(l:pattern))
+            let l:pattern = l:pattern . '\|'                                                                                                                                                                                                                           
+        endif
+                                                                                                                                                                                                                                                       
+        let l:pattern = l:pattern . '\%' . row . 'l' . '\%>' . (col - 1) . 'c\%<' . (col + strlen(a:old)) . 'c' . a:old                    
+    endfor
+
+    let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'                                                                                                                                                                                                          
+
+    execute(l:cmd)
+endf
+
 
 
 let g:clamp_occurrence_priority = get(g:, 'clamp_occurrence_priority', -1)
@@ -125,7 +164,7 @@ command! ClampStart call s:enable_clamp()
 command! ClampShutdown call s:request_shutdown()
 
 if g:clamp_autostart
-""    au VimEnter * call s:enable_clamp()
+    au VimEnter * call s:enable_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
 au TextChanged,CursorMoved * call ClampNotifyParseHighlight()

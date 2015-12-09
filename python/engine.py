@@ -159,9 +159,42 @@ def engine_start():
                     nvim.call('ClampHighlight', filepath, [
                               (syntax_pri, syntax), (occurrences_pri, occurrence)])
 
+
         elif event[1] == 'rename':
-            usr = event[2][0]
+            filepath = event[2][0]
+            row = event[2][1]
+            col = event[2][2]
+
             _update_unsaved_and_parse_all(nvim, unsaved, context)
+
+            cursor = clamp_helper.get_cursor(context[filepath][0], filepath, row, col)
+            if not cursor:
+                event[3].send({})
+                continue
+
+            symbol = clamp_helper.get_semantic_symbol(cursor)
+            if not symbol:
+                event[3].send({})
+                continue
+
+            usr = symbol.get_usr()
+
+            result = {}
+            symbols = []
+            for filepath, [tu, tick] in context.iteritems() :
+                clamp_helper.search_cursor_by_usr(tu.cursor, usr, symbols)
+                if not symbols:
+                    continue
+
+                locations = []
+                for sym in symbols:                                                                                                                                                                                                                                
+                    clamp_helper.search_referenced_tokens(tu, sym, locations)      
+
+                result[filepath] = locations
+
+            result['old'] = symbol.spelling
+
+            event[3].send(result);
 
         elif event[1] == 'shutdown':
             nvim.call('Shutdown')
