@@ -110,62 +110,57 @@ def engine_start():
 
         print 'event', event[1]
         if event[1] == 'parse&highlight':
-            filepath = event[2][0]
+            bufnr = event[2][0]
             begin_line = event[2][1]
             end_line = event[2][2]
 
             changedtick = nvim.eval('b:changedtick')
-            for buffer in nvim.buffers:
-                if buffer.name == filepath:
-                    _update_unsaved(buffer, unsaved)
-                    _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick);
+            buffer = nvim.buffers[bufnr - 1]
+            _update_unsaved(buffer, unsaved)
+            _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick);
 
-                    tu, tick = context[filepath]
-                    symbol = clamp_helper.get_vim_symbol(
-                        nvim, clamp_helper.get_vim_cursor(nvim, tu))
-                    syntax, occurrence = _highlight(
-                        tu, filepath, begin_line, end_line, symbol)
+            tu, tick = context[buffer.name]
+            symbol = clamp_helper.get_vim_symbol(
+                nvim, clamp_helper.get_vim_cursor(nvim, tu))
+            syntax, occurrence = _highlight(
+                tu, buffer.name, begin_line, end_line, symbol)
 
-                    nvim.call('ClampHighlight', filepath, [
-                              [syntax_pri, syntax], [occurrences_pri, occurrence]])
+            nvim.call('ClampHighlight', buffer.name, [
+                      [syntax_pri, syntax], [occurrences_pri, occurrence]])
 
-                    break
 
         elif event[1] == 'parse':
-            filepath = event[2][0]
+            bufnr = event[2][0]
 
             changedtick = nvim.eval('b:changedtick')
+            buffer = nvim.buffers[bufnr-1]
+            _update_unsaved(buffer, unsaved)
+            _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick);
 
-            for buffer in nvim.buffers:
-                if buffer.name == filepath:
-                    _update_unsaved(buffer, unsaved)
-                    _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick);
-
-                    break
 
         elif event[1] == 'highlight':
-            filepath = event[2][0]
+            bufnr = event[2][0]
             begin_line = event[2][1]
             end_line = event[2][2]
+                
+            buffer = nvim.buffers[bufnr-1]
+            tu, tick = context[buffer.name]
 
-            for buffer in nvim.buffers:
-                if buffer.name == filepath:
-                    tu, tick = context[filepath]
+            symbol = clamp_helper.get_vim_symbol(
+                nvim, clamp_helper.get_vim_cursor(nvim, tu))
+            syntax, occurrence = _highlight(
+                tu, buffer.name, begin_line, end_line, symbol)
 
-                    symbol = clamp_helper.get_vim_symbol(
-                        nvim, clamp_helper.get_vim_cursor(nvim, tu))
-                    syntax, occurrence = _highlight(
-                        tu, filepath, begin_line, end_line, symbol)
-
-                    nvim.call('ClampHighlight', filepath, [
-                              (syntax_pri, syntax), (occurrences_pri, occurrence)])
+            nvim.call('ClampHighlight', buffer.name, [
+                      (syntax_pri, syntax), (occurrences_pri, occurrence)])
 
 
         elif event[1] == 'rename':
-            filepath = event[2][0]
+            bufnr = event[2][0]
             row = event[2][1]
             col = event[2][2]
 
+            filepath = nvim.buffers[bufnr-1].name
             _update_unsaved_and_parse_all(nvim, unsaved, context)
 
             cursor = clamp_helper.get_cursor(context[filepath][0], filepath, row, col)
@@ -218,10 +213,11 @@ def _update_unsaved(vim_buffer, unsaved):
 def _update_unsaved_and_parse_all(nvim, unsaved, context):
     unsaved = []
 
-    for buffer in nvim.buffers:
+    buffers = nvim.buffers
+    for buffer in buffers:
         unsaved.append((buffer.name, '\n'.join(buffer)))
 
-    for buffer in nvim.buffers:
+    for buffer in buffers:
         _parse_or_reparse_if_need(buffer.name, unsaved, context, nvim.call('getbufvar', buffer.name, 'changedtick'));
 
 def _parse_or_reparse_if_need(filepath, unsaved, context, changedtick):

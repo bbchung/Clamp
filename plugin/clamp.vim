@@ -84,7 +84,7 @@ fun! ClampNotifyParseHighlight()
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', expand('%:p'), line('w0'), line('w$'))
+        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(""), line('w0'), line('w$'))
     endif
 endf
 
@@ -94,7 +94,7 @@ fun! ClampNotifyParse()
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse', expand('%:p'))
+        silent! call rpcnotify(g:clamp_channel, 'parse', bufnr(""))
     endif
 endf
 
@@ -104,13 +104,13 @@ fun! ClampNotifyHighlight()
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'highlight', expand('%:p'), line('w0'), line('w$'))
+        silent! call rpcnotify(g:clamp_channel, 'highlight', bufnr(""), line('w0'), line('w$'))
     endif
 endf
 
 fun! ClampRename()
     let s:pos = getpos('.')
-    let s:result = rpcrequest(g:clamp_channel, 'rename', expand('%:p'), s:pos[1], s:pos[2])
+    let s:result = rpcrequest(g:clamp_channel, 'rename', bufnr(""), s:pos[1], s:pos[2])
     if empty(s:result['renames'])
         return
     endif
@@ -175,7 +175,7 @@ if g:clamp_autostart
     au VimEnter * call s:enable_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
-au TextChanged,CursorMoved * call ClampNotifyParseHighlight()
+au InsertLeave,TextChanged,CursorMoved * call ClampNotifyParseHighlight()
 "au CursorMoved * call ClampNotifyHighlight()
 if (g:clamp_highlight_mode == 1)
     au TextChangedI * call ClampNotifyParseHighlight()
