@@ -159,11 +159,12 @@ def engine_start():
             bufnr = event[2][0]
             row = event[2][1]
             col = event[2][2]
+            word = event[2][3]
 
             filepath = nvim.buffers[bufnr-1].name
             _update_unsaved_and_parse_all(nvim, unsaved, context)
 
-            cursor = clamp_helper.get_cursor(context[filepath][0], filepath, row, col)
+            cursor = clamp_helper.get_cursor(context[filepath][0], filepath, row, col, word)
             if not cursor:
                 event[3].send({})
                 continue
@@ -182,7 +183,8 @@ def engine_start():
                     locations = []
                     clamp_helper.search_referenced_tokens_by_usr(tu, usr, locations, symbol.spelling)
 
-                    result['renames'][filepath] = locations
+                    if locations:
+                        result['renames'][filepath] = locations
             else:
                 clamp_helper.search_referenced_tokens(tu, symbol, locations)
                 

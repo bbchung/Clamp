@@ -12,8 +12,13 @@ def get_vim_symbol(nvim, cursor):
 
     return symbol
 
-def get_cursor(tu, filepath, row, col):
-    return cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(filepath), row, col))
+def get_cursor(tu, filepath, row, col, word):
+    cursor = cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(filepath), row, col))
+
+    if cursor.spelling != word:
+        return None
+    
+    return cursor
 
 def get_vim_cursor(nvim, tu):
     row, col = nvim.current.window.cursor
