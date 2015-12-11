@@ -113,83 +113,86 @@ def engine_start():
             bufnr = event[2][0]
             begin_line = event[2][1]
             end_line = event[2][2]
+            row = event[2][3]
+            col = event[2][4]
 
             changedtick = nvim.eval('b:changedtick')
             buffer = nvim.buffers[bufnr - 1]
             _update_unsaved(buffer, unsaved)
-            _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick);
+            _parse_or_reparse_if_need(
+                buffer.name,
+                unsaved,
+                context,
+                changedtick)
 
             tu, tick = context[buffer.name]
-            symbol = clamp_helper.get_vim_symbol(
-                nvim, clamp_helper.get_vim_cursor(nvim, tu))
+
+            symbol = clamp_helper.get_semantic_symbol_from_location(
+                tu, buffer.name, row, col)
             syntax, occurrence = _highlight(
                 tu, buffer.name, begin_line, end_line, symbol)
 
             nvim.call('ClampHighlight', buffer.name, [
                       [syntax_pri, syntax], [occurrences_pri, occurrence]])
 
-
         elif event[1] == 'parse':
             bufnr = event[2][0]
 
             changedtick = nvim.eval('b:changedtick')
-            buffer = nvim.buffers[bufnr-1]
+            buffer = nvim.buffers[bufnr - 1]
             _update_unsaved(buffer, unsaved)
-            _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick);
-
+            _parse_or_reparse_if_need(
+                buffer.name,
+                unsaved,
+                context,
+                changedtick)
 
         elif event[1] == 'highlight':
             bufnr = event[2][0]
             begin_line = event[2][1]
             end_line = event[2][2]
-                
-            buffer = nvim.buffers[bufnr-1]
+            row = event[2][3]
+            col = event[2][4]
+
+            buffer = nvim.buffers[bufnr - 1]
             tu, tick = context[buffer.name]
 
-            symbol = clamp_helper.get_vim_symbol(
-                nvim, clamp_helper.get_vim_cursor(nvim, tu))
+            symbol = clamp_helper.get_semantic_symbol_from_location(
+                tu, buffer.name, row, col)
+
             syntax, occurrence = _highlight(
                 tu, buffer.name, begin_line, end_line, symbol)
 
             nvim.call('ClampHighlight', buffer.name, [
                       (syntax_pri, syntax), (occurrences_pri, occurrence)])
 
-
         elif event[1] == 'rename':
             bufnr = event[2][0]
             row = event[2][1]
             col = event[2][2]
-            word = event[2][3]
 
-            filepath = nvim.buffers[bufnr-1].name
+            filepath = nvim.buffers[bufnr - 1].name
             _update_unsaved_and_parse_all(nvim, unsaved, context)
 
-            cursor = clamp_helper.get_cursor(context[filepath][0], filepath, row, col, word)
-            if not cursor:
-                event[3].send({})
-                continue
-
-            symbol = clamp_helper.get_semantic_symbol(cursor)
-            result = {'old':symbol.spelling, 'renames':{}}
-
+            symbol = clamp_helper.get_semantic_symbol_from_location(
+                context[filepath][0], filepath, row, col)
             if not symbol:
                 event[3].send({})
                 continue
 
+            result = {'old': symbol.spelling, 'renames': {}}
             usr = symbol.get_usr()
 
             if usr:
-                for filepath, [tu, tick] in context.iteritems() :
+                for filepath, [tu, tick] in context.iteritems():
                     locations = []
-                    clamp_helper.search_referenced_tokens_by_usr(tu, usr, locations, symbol.spelling)
+                    clamp_helper.search_referenced_tokens_by_usr(
+                        tu, usr, locations, symbol.spelling)
 
                     if locations:
                         result['renames'][filepath] = locations
-            else:
-                clamp_helper.search_referenced_tokens(tu, symbol, locations)
-                
-                
-            event[3].send(result);
+
+            event[3].send(result)
 
         elif event[1] == 'shutdown':
             nvim.call('Shutdown')
@@ -205,12 +208,14 @@ def _parse(unsaved, filepath):
 
     return _parse.idx.parse(filepath, args, unsaved, options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
+
 def _update_unsaved(vim_buffer, unsaved):
     for filepath, buffer in unsaved:
         if filepath == vim_buffer.name:
             unsaved.remove((filepath, buffer))
 
     unsaved.append((vim_buffer.name, '\n'.join(vim_buffer)))
+
 
 def _update_unsaved_and_parse_all(nvim, unsaved, context):
     unsaved = []
@@ -220,14 +225,24 @@ def _update_unsaved_and_parse_all(nvim, unsaved, context):
         unsaved.append((buffer.name, '\n'.join(buffer)))
 
     for buffer in buffers:
-        _parse_or_reparse_if_need(buffer.name, unsaved, context, nvim.call('getbufvar', buffer.name, 'changedtick'));
+        _parse_or_reparse_if_need(
+            buffer.name,
+            unsaved,
+            context,
+            nvim.call('getbufvar',
+                      buffer.name,
+                      'changedtick'))
+
 
 def _parse_or_reparse_if_need(filepath, unsaved, context, changedtick):
     if filepath not in context:
         context[filepath] = [_parse(unsaved, filepath), changedtick]
     elif context[filepath][1] != changedtick:
-        context[filepath][0].reparse(unsaved, options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+        context[filepath][0].reparse(
+            unsaved,
+            options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
         context[filepath][1] = changedtick
+
 
 def _highlight(tu, filepath, begin_line, end_line, symbol):
     file = tu.get_file(filepath)
@@ -264,8 +279,9 @@ def _highlight(tu, filepath, begin_line, end_line, symbol):
 
             syntax[group].append(pos)
 
-        token_symbol = clamp_helper.get_semantic_symbol(cursor)
-        if symbol and token_symbol and symbol == token_symbol and token.spelling == token_symbol.spelling:
+        t_symbol = clamp_helper.get_semantic_symbol(cursor)
+
+        if symbol and t_symbol and symbol == t_symbol:
             occurrence['clampOccurrences'].append(pos)
 
     return syntax, occurrence

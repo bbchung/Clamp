@@ -1,36 +1,22 @@
-import neovim
 from clang import cindex
 
-def get_vim_symbol(nvim, cursor):
-    symbol = get_semantic_symbol(cursor)
 
-    if not symbol:
+def get_semantic_symbol_from_location(tu, filepath, row, col):
+    cursor = cindex.Cursor.from_location(
+        tu,
+        cindex.SourceLocation.from_position(tu,
+                                            tu.get_file(filepath),
+                                            row,
+                                            col))
+    if not cursor:
         return None
 
-    if nvim.eval('expand("<cword>")') != symbol.spelling:
-        return None
+    tokens = cursor.get_tokens()
+    for token in tokens:
+        if token.kind.value == 2 and row == token.location.line and token.location.column <= col and col < token.location.column + len(token.spelling):
+            return get_semantic_symbol(cursor)
 
-    return symbol
-
-def get_cursor(tu, filepath, row, col, word):
-    cursor = cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(filepath), row, col))
-
-    if cursor.spelling != word:
-        return None
-    
-    return cursor
-
-def get_vim_cursor(nvim, tu):
-    row, col = nvim.current.window.cursor
-
-    # try:
-        # c = nvim.current.line[col]
-        # if not c.isalnum() and c != '_':
-            # return None
-    # except:    
-        # return None
-
-    return cindex.Cursor.from_location(tu, cindex.SourceLocation.from_position( tu, tu.get_file(nvim.current.buffer.name), row, col + 1))
+    return None
 
 
 def is_vim_buffer_allowed(buf):
@@ -62,7 +48,7 @@ def get_semantic_symbol(cursor):
         symbol = cursor.referenced
 
     if not symbol:
-        symbol = cursor
+        return None
 
     if symbol.kind == cindex.CursorKind.CONSTRUCTOR or symbol.kind == cindex.CursorKind.DESTRUCTOR:
         symbol = symbol.semantic_parent
@@ -73,6 +59,7 @@ def get_semantic_symbol(cursor):
 def get_spelling_or_displayname(cursor):
     return cursor.spelling if cursor.spelling else cursor.displayname
 
+
 def search_referenced_tokens_by_usr(tu, usr, result, spelling):
     tokens = tu.cursor.get_tokens()
     for token in tokens:
@@ -82,6 +69,7 @@ def search_referenced_tokens_by_usr(tu, usr, result, spelling):
         symbol = get_semantic_symbol(cursor)
         if token.spelling == spelling and symbol and symbol.get_usr() == usr:
             result.append((token.location.line, token.location.column))
+
 
 def search_referenced_tokens(tu, symbol, result):
     tokens = tu.cursor.get_tokens()

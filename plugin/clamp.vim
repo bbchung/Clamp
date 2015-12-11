@@ -84,7 +84,8 @@ fun! ClampNotifyParseHighlight()
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(""), line('w0'), line('w$'))
+        let s:pos = getpos('.')
+        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(""), line('w0'), line('w$'), s:pos[1], s:pos[2])
     endif
 endf
 
@@ -109,8 +110,11 @@ fun! ClampNotifyHighlight()
 endf
 
 fun! ClampRename()
+    if !exists('g:clamp_channel')
+        return
+    endif
     let s:pos = getpos('.')
-    let s:result = rpcrequest(g:clamp_channel, 'rename', bufnr(""), s:pos[1], s:pos[2], expand("<cword>"))
+    let s:result = rpcrequest(g:clamp_channel, 'rename', bufnr(""), s:pos[1], s:pos[2])
     if empty(s:result) || empty(s:result['renames'])
         return
     endif
