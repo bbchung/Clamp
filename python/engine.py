@@ -281,7 +281,7 @@ def _highlight(tu, filepath, begin_line, end_line, symbol):
 
         t_symbol = clamp_helper.get_semantic_symbol(cursor)
 
-        if symbol and t_symbol and symbol == t_symbol:
+        if symbol and t_symbol and symbol == t_symbol and t_symbol.spelling == token.spelling:
             occurrence['clampOccurrences'].append(pos)
 
     return syntax, occurrence

@@ -14,7 +14,9 @@ def get_semantic_symbol_from_location(tu, filepath, row, col):
     tokens = cursor.get_tokens()
     for token in tokens:
         if token.kind.value == 2 and row == token.location.line and token.location.column <= col and col < token.location.column + len(token.spelling):
-            return get_semantic_symbol(cursor)
+            symbol =  get_semantic_symbol(cursor)
+            if symbol.spelling == token.spelling:
+                return symbol
 
     return None
 
@@ -37,9 +39,6 @@ def search_cursor_by_usr(cursor, usr, result):
 
 
 def get_semantic_symbol(cursor):
-    if not cursor:
-        return None
-
     if cursor.kind == cindex.CursorKind.MACRO_DEFINITION:
         return cursor
 
@@ -56,10 +55,6 @@ def get_semantic_symbol(cursor):
     return symbol
 
 
-def get_spelling_or_displayname(cursor):
-    return cursor.spelling if cursor.spelling else cursor.displayname
-
-
 def search_referenced_tokens_by_usr(tu, usr, result, spelling):
     tokens = tu.cursor.get_tokens()
     for token in tokens:
@@ -69,19 +64,3 @@ def search_referenced_tokens_by_usr(tu, usr, result, spelling):
         symbol = get_semantic_symbol(cursor)
         if token.spelling == spelling and symbol and symbol.get_usr() == usr:
             result.append((token.location.line, token.location.column))
-
-
-def search_referenced_tokens(tu, symbol, result):
-    tokens = tu.cursor.get_tokens()
-
-    for t in tokens:
-        if t.kind.value != 2:
-            continue
-
-        t_cursor = t.cursor
-        t_cursor._tu = tu
-
-        t_symbol = get_semantic_symbol(t_cursor)
-
-        if t_symbol and t_symbol == symbol:
-            result.append((t.location.line, t.location.column))
