@@ -132,6 +132,8 @@ fun! ClampRename()
     bufdo! call s:clamp_replace(s:result['renames'], s:old, s:new)
     exe l:wnr.'wincmd w'
     exe 'buffer '.l:bufnr
+
+    silent! call rpcrequest(g:clamp_channel, 'update_unsaved_all')
 endf
 
 fun! s:clamp_replace(renames, old, new)

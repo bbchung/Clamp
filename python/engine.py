@@ -194,11 +194,24 @@ def engine_start():
 
             event[3].send(result)
 
+        elif event[1] == 'update_unsaved_all':
+            _update_unsaved_all(nvim, unsaved)
+            event[3].send('ok')
+
         elif event[1] == 'shutdown':
             nvim.call('Shutdown')
             nvim.session.stop()
             _is_running = False
             event[3].send('ok')
+
+def _update_unsaved_all(nvim, unsaved):
+    del unsaved[:] 
+
+    for buffer in nvim.buffers:
+        if not buffer.name.split(".")[-1] in ['c', 'cpp', 'h', 'hpp']:
+            continue;
+
+    unsaved.append((buffer.name, '\n'.join(buffer)))
 
 
 def _parse(unsaved, filepath):
@@ -218,13 +231,12 @@ def _update_unsaved(vim_buffer, unsaved):
 
 
 def _update_unsaved_and_parse_all(nvim, unsaved, context):
-    unsaved = []
+    _update_unsaved_all(nvim, unsaved)
 
-    buffers = nvim.buffers
-    for buffer in buffers:
-        unsaved.append((buffer.name, '\n'.join(buffer)))
+    for buffer in nvim.buffers:
+        if not buffer.name.split(".")[-1] in ['c', 'cpp', 'h', 'hpp']:
+            continue;
 
-    for buffer in buffers:
         _parse_or_reparse_if_need(
             buffer.name,
             unsaved,
