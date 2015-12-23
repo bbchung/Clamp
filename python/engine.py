@@ -115,6 +115,10 @@ def engine_start():
             end_line = event[2][2]
             row = event[2][3]
             col = event[2][4]
+            highlight_tick = event[2][5]
+
+            if highlight_tick != nvim.current.buffer.vars['highlight_tick']:
+                continue;
 
             changedtick = nvim.eval('b:changedtick')
             buffer = nvim.buffers[bufnr - 1]

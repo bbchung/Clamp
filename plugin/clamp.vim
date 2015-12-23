@@ -83,9 +83,15 @@ fun! ClampNotifyParseHighlight()
         return
     endif
 
+    if !exists('b:highlight_tick')
+        let b:highlight_tick = 0
+    endif
+
+    let b:highlight_tick = b:highlight_tick + 1
+
     if exists('g:clamp_channel')
         let s:pos = getpos('.')
-        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(""), line('w0'), line('w$'), s:pos[1], s:pos[2])
+        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(""), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
     endif
 endf
 
