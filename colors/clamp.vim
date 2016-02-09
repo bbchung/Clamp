@@ -1,11 +1,11 @@
 set background=dark
 
 hi clear
-if exists("syntax_on")
+if exists('syntax_on')
     syntax reset
 endif
 
-let g:colors_name = expand("<sfile>:t:r")
+let g:colors_name = expand('<sfile>:t:r')
 
 " default {
 hi Normal term=NONE cterm=NONE ctermbg=234 ctermfg=254 gui=NONE guibg=#151515 guifg=#e8e8d3

@@ -118,7 +118,7 @@ def engine_start():
             highlight_tick = event[2][5]
 
             if highlight_tick != nvim.current.buffer.vars['highlight_tick']:
-                continue;
+                continue
 
             changedtick = nvim.eval('b:changedtick')
             buffer = nvim.buffers[bufnr - 1]
@@ -208,12 +208,13 @@ def engine_start():
             _is_running = False
             event[3].send('ok')
 
+
 def _update_unsaved_all(nvim, unsaved):
-    del unsaved[:] 
+    del unsaved[:]
 
     for buffer in nvim.buffers:
         if not buffer.name.split(".")[-1] in ['c', 'cpp', 'h', 'hpp']:
-            continue;
+            continue
 
     unsaved.append((buffer.name, '\n'.join(buffer)))
 
@@ -239,7 +240,7 @@ def _update_unsaved_and_parse_all(nvim, unsaved, context):
 
     for buffer in nvim.buffers:
         if not buffer.name.split(".")[-1] in ['c', 'cpp', 'h', 'hpp']:
-            continue;
+            continue
 
         _parse_or_reparse_if_need(
             buffer.name,

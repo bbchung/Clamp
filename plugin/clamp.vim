@@ -17,29 +17,29 @@ fun! ClampHighlight(filepath, highlights)
         return
     endif
 
-    for [priority, matches] in a:highlights
-        for m in getmatches()
-            if priority == m['priority']
-                call matchdelete(m['id'])
+    for [l:priority, l:matches] in a:highlights
+        for l:m in getmatches()
+            if l:priority == l:m['priority']
+                call matchdelete(l:m['id'])
             endif
         endfor
 
-        for [group, all_pos] in items(matches)
+        for [l:group, l:all_pos] in items(l:matches)
             let s:count = 0
             let s:match8 = []
 
-            for pos in all_pos
-                call add(s:match8, pos)
+            for l:pos in l:all_pos
+                call add(s:match8, l:pos)
                 let s:count = s:count + 1
                 if s:count == 8
-                    call matchaddpos(group, s:match8, priority)
+                    call matchaddpos(l:group, s:match8, l:priority)
 
                     let s:count = 0
                     let s:match8 = []
                 endif
             endfor
 
-            call matchaddpos(group, s:match8, priority)
+            call matchaddpos(l:group, s:match8, l:priority)
         endfor
     endfor
 endf
@@ -54,9 +54,9 @@ fun! Shutdown()
 endf
 
 fun! s:clear_match_by_priorities(priorities)
-    for m in getmatches()
-        if index(a:priorities, m['priority']) >= 0
-            call matchdelete(m['id'])
+    for l:m in getmatches()
+        if index(a:priorities, l:m['priority']) >= 0
+            call matchdelete(l:m['id'])
         endif
     endfor
 endf
@@ -79,7 +79,7 @@ fun! s:request_shutdown()
 endf
 
 fun! ClampNotifyParseHighlight()
-    if index(['c', 'cpp', 'objc', 'objcpp'], &ft) == -1
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
@@ -91,27 +91,27 @@ fun! ClampNotifyParseHighlight()
 
     if exists('g:clamp_channel')
         let s:pos = getpos('.')
-        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(""), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
+        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(''), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
     endif
 endf
 
 fun! ClampNotifyParse()
-    if index(['c', 'cpp', 'objc', 'objcpp'], &ft) == -1
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse', bufnr(""))
+        silent! call rpcnotify(g:clamp_channel, 'parse', bufnr(''))
     endif
 endf
 
 fun! ClampNotifyHighlight()
-    if index(['c', 'cpp', 'objc', 'objcpp'], &ft) == -1
+    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
 
     if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'highlight', bufnr(""), line('w0'), line('w$'))
+        silent! call rpcnotify(g:clamp_channel, 'highlight', bufnr(''), line('w0'), line('w$'))
     endif
 endf
 
@@ -120,7 +120,7 @@ fun! ClampRename()
         return
     endif
     let s:pos = getpos('.')
-    let s:result = rpcrequest(g:clamp_channel, 'rename', bufnr(""), s:pos[1], s:pos[2])
+    let s:result = rpcrequest(g:clamp_channel, 'rename', bufnr(''), s:pos[1], s:pos[2])
     if empty(s:result) || empty(s:result['renames'])
         return
     endif
@@ -134,7 +134,7 @@ fun! ClampRename()
     endif
 
     let l:wnr = winnr()
-    let l:bufnr = bufnr("")
+    let l:bufnr = bufnr('')
     bufdo! call s:clamp_replace(s:result['renames'], s:old, s:new)
     exe l:wnr.'wincmd w'
     exe 'buffer '.l:bufnr
@@ -153,13 +153,13 @@ fun! s:clamp_replace(renames, old, new)
         return
     endif
 
-    let l:pattern = ""
-    for [row, col] in l:locations
+    let l:pattern = ''
+    for [l:row, l:col] in l:locations
         if (!empty(l:pattern))
             let l:pattern = l:pattern . '\|'                                                                                                                                                                                                                           
         endif
                                                                                                                                                                                                                                                        
-        let l:pattern = l:pattern . '\%' . row . 'l' . '\%>' . (col - 1) . 'c\%<' . (col + strlen(a:old)) . 'c' . a:old                    
+        let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old                    
     endfor
 
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'                                                                                                                                                                                                          
@@ -183,6 +183,7 @@ let g:clamp_highlight_mode = get(g:, 'clamp_highlight_mode', 0)
 command! ClampStart call s:enable_clamp()
 command! ClampShutdown call s:request_shutdown()
 
+augroup Clamp
 if g:clamp_autostart
     au VimEnter * call s:enable_clamp()
 endif
@@ -192,5 +193,6 @@ au InsertLeave,TextChanged,CursorMoved * call ClampNotifyParseHighlight()
 if (g:clamp_highlight_mode == 1)
     au TextChangedI * call ClampNotifyParseHighlight()
 endif
+augroup END
 
 let g:loaded_clamp=1
