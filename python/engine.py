@@ -83,14 +83,14 @@ def engine_start():
     context = {}  # {'filepath' : [tu, tick]}
 
     nvim = attach('stdio')
-    
+
     #nvim = attach('socket', path=sys.argv[1])
     #nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
 
-    print 'channel=%d' % nvim.channel_id
+    sys.stderr.write('channel=%d' % nvim.channel_id)
 
     cindex.Config.set_library_file(nvim.vars['clamp_libclang_path'])
-    print 'libclang=%s' % cindex.Config.library_file
+    sys.stderr.write('libclang=%s' % cindex.Config.library_file)
 
     occurrences_pri = nvim.vars['clamp_occurrence_priority']
     syntax_pri = nvim.vars['clamp_syntax_priority']
@@ -110,7 +110,7 @@ def engine_start():
         if not event:
             continue
 
-        print 'event', event[1]
+        sys.stderr.write('even t%s'% event[1])
         if event[1] == 'parse&highlight':
             bufnr = event[2][0]
             begin_line = event[2][1]

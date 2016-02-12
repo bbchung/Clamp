@@ -64,14 +64,14 @@ endf
 fun! s:enable_clamp()
     call s:request_shutdown()
     let g:clamp_channel = rpcstart('python', [s:script_folder_path.'/../python/engine.py'])
-    "call jobstart('python', [s:script_folder_path.'/../python/engine.py', v:servername])
+    "let g:clamp_channel = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
 endf
 
 fun! s:request_shutdown()
     if exists('g:clamp_channel')
         silent! call rpcrequest(g:clamp_channel, 'shutdown')
         call rpcstop(g:clamp_channel)
-    endif 
+    endif
 
     call Shutdown()
 endf
