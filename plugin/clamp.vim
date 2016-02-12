@@ -13,7 +13,7 @@ let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\' )
 execute('source '. s:script_folder_path . '/../syntax/clamp.vim')
 
 fun! ClampHighlight(filepath, highlights)
-    if a:filepath != expand('%:p')  
+    if a:filepath != expand('%:p')
         return
     endif
 
@@ -46,7 +46,7 @@ endf
 
 fun! Shutdown()
     let a:wnr = winnr()
-    windo call s:clear_match_by_priorities([g:clamp_occurrence_priority, g:clamp_syntax_priority]) 
+    windo call s:clear_match_by_priorities([g:clamp_occurrence_priority, g:clamp_syntax_priority])
     exe a:wnr.'wincmd w'
 
     silent! unlet g:clamp_channel
@@ -63,19 +63,17 @@ endf
 
 fun! s:enable_clamp()
     call s:request_shutdown()
-    "let g:clamp_channel = rpcstart('python', [s:script_folder_path.'/../python/engine.py', v:servername])
-    let s:clamp_job = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
+    let g:clamp_channel = rpcstart('python', [s:script_folder_path.'/../python/engine.py'])
+    "call jobstart('python', [s:script_folder_path.'/../python/engine.py', v:servername])
 endf
 
 fun! s:request_shutdown()
     if exists('g:clamp_channel')
         silent! call rpcrequest(g:clamp_channel, 'shutdown')
-    endif
+        call rpcstop(g:clamp_channel)
+    endif 
 
-    if exists('s:clamp_job')
-        call jobstop(s:clamp_job)
-        silent! unlet s:clamp_job
-    endif
+    call Shutdown()
 endf
 
 fun! ClampNotifyParseHighlight()
@@ -156,13 +154,13 @@ fun! s:clamp_replace(renames, old, new)
     let l:pattern = ''
     for [l:row, l:col] in l:locations
         if (!empty(l:pattern))
-            let l:pattern = l:pattern . '\|'                                                                                                                                                                                                                           
+            let l:pattern = l:pattern . '\|'
         endif
-                                                                                                                                                                                                                                                       
-        let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old                    
+
+        let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old
     endfor
 
-    let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'                                                                                                                                                                                                          
+    let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
 
     execute(l:cmd)
 endf
@@ -187,7 +185,7 @@ augroup Clamp
 if g:clamp_autostart
     au VimEnter * call s:enable_clamp()
 endif
-au VimLeave * silent! call s:request_shutdown()
+au VimLeave c,cpp,h,hpp silent! call s:request_shutdown()
 au InsertLeave,TextChanged,CursorMoved * call ClampNotifyParseHighlight()
 "au CursorMoved * call ClampNotifyHighlight()
 if (g:clamp_highlight_mode == 1)

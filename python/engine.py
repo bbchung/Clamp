@@ -82,9 +82,11 @@ def engine_start():
 
     context = {}  # {'filepath' : [tu, tick]}
 
-    # nvim = attach('stdio')
-    nvim = attach('socket', path=sys.argv[1])
-    nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
+    nvim = attach('stdio')
+    
+    #nvim = attach('socket', path=sys.argv[1])
+    #nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
+
     print 'channel=%d' % nvim.channel_id
 
     cindex.Config.set_library_file(nvim.vars['clamp_libclang_path'])
@@ -203,7 +205,6 @@ def engine_start():
             event[3].send('ok')
 
         elif event[1] == 'shutdown':
-            nvim.call('Shutdown')
             nvim.session.stop()
             _is_running = False
             event[3].send('ok')
