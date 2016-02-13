@@ -304,4 +304,8 @@ def _highlight(tu, filepath, begin_line, end_line, symbol):
 
     return syntax, occurrence
 
-engine_start()
+def main(argv=None):
+    engine_start()
+
+if __name__ == "__main__":
+    main()
