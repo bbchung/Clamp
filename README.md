@@ -110,7 +110,7 @@ nmap <silent> <Leader>r :call ClampRename()<CR>
 Clamp automatically load and parse the compilation database
 "compile_commands.json" if it exists in current working directory, then the
 compile options will be passed to libclang. For more information about
-compilation database, please reference[Compilation Database][cdb].
+compilation database, please reference [Compilation Database][cdb].
 
 ## Highlight Group
 
