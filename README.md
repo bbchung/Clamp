@@ -142,12 +142,12 @@ hi default link clampTemplateTypeParameter Identifier
 hi default link clampTemplateNoneTypeParameter Identifier
 hi default link clampTemplateRef Type
 hi default link clampOccurrences IncSearch```
+```
 
 You can customize these colors in your colorscheme, for example:
 ```vim
 hi clampTypeRef term=NONE cterm=NONE ctermbg=232 ctermfg=255 gui=NONE
 ```
-
 ## FAQ
 
 ### The Clamp plugin doesn't work?
