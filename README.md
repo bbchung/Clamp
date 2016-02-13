@@ -141,7 +141,7 @@ hi default link clampNamespaceRef Type
 hi default link clampTemplateTypeParameter Identifier
 hi default link clampTemplateNoneTypeParameter Identifier
 hi default link clampTemplateRef Type
-hi default link clampOccurrences IncSearch```
+hi default link clampOccurrences IncSearch
 ```
 
 You can customize these colors in your colorscheme, for example:
