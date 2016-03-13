@@ -9,11 +9,11 @@ if exists('g:loaded_clamp')
     finish
 endif
 
-let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\' )
+let s:script_folder_path = escape( expand( '<sfile>:p:h' ), '\'   )
 execute('source '. s:script_folder_path . '/../syntax/clamp.vim')
 
-fun! ClampHighlight(filepath, highlights)
-    if a:filepath != expand('%:p')
+fun! ClampHighlight(bufname, highlights)
+    if a:bufname != expand('%:p')
         return
     endif
 
@@ -76,7 +76,7 @@ fun! s:request_shutdown()
     call Shutdown()
 endf
 
-fun! ClampNotifyParseHighlight()
+fun! ClampNotifyHighlight()
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -89,7 +89,7 @@ fun! ClampNotifyParseHighlight()
 
     if exists('g:clamp_channel')
         let s:pos = getpos('.')
-        silent! call rpcnotify(g:clamp_channel, 'parse&highlight', bufnr(''), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
+        silent! call rpcnotify(g:clamp_channel, 'highlight', expand('%:p'), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
     endif
 endf
 
@@ -103,22 +103,12 @@ fun! ClampNotifyParse()
     endif
 endf
 
-fun! ClampNotifyHighlight()
-    if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
-        return
-    endif
-
-    if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'highlight', bufnr(''), line('w0'), line('w$'))
-    endif
-endf
-
 fun! ClampRename()
     if !exists('g:clamp_channel')
         return
     endif
     let s:pos = getpos('.')
-    let s:result = rpcrequest(g:clamp_channel, 'rename', bufnr(''), s:pos[1], s:pos[2])
+    let s:result = rpcrequest(g:clamp_channel, 'rename', expand('%:p'), s:pos[1], s:pos[2])
     if empty(s:result) || empty(s:result['renames'])
         return
     endif
@@ -184,10 +174,10 @@ if g:clamp_autostart
     au VimEnter *.c,*.cpp,*.h,*.hpp call s:enable_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
-au InsertLeave,TextChanged,CursorMoved * call ClampNotifyParseHighlight()
-"au CursorMoved * call ClampNotifyHighlight()
+au InsertLeave,TextChanged * call ClampNotifyParse()
+au CursorMoved * call ClampNotifyHighlight()
 if (g:clamp_highlight_mode == 1)
-    au TextChangedI * call ClampNotifyParseHighlight()
+    au TextChangedI * call ClampNotifyParse()
 endif
 augroup END
 
