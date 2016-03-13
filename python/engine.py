@@ -102,16 +102,13 @@ def engine_start():
 
     _highlight.blacklist = nvim.vars['clamp_highlight_blacklist']
 
-    nvim.call('ClampNotifyParse')
-    nvim.call('ClampNotifyHighlight')
-
     unsaved = []
     while (_is_running):
         event = nvim.session.next_message()
         if not event:
             continue
 
-        sys.stderr.write('event %s\n'% event[1])
+        sys.stderr.write('event %s\n' % event[1])
         if event[1] == 'highlight':
             bufname = event[2][0]
             begin_line = event[2][1]
@@ -123,9 +120,9 @@ def engine_start():
             if highlight_tick != nvim.current.buffer.vars['highlight_tick']:
                 continue
 
-            if not context.has_key(bufname):
+            if bufname not in context:
                 continue
-                
+
             tu, tick = context[bufname]
 
             symbol = clamp_helper.get_semantic_symbol_from_location(
@@ -142,9 +139,9 @@ def engine_start():
             changedtick = nvim.eval('b:changedtick')
             buffer = nvim.buffers[bufnr - 1]
             _update_unsaved(buffer, unsaved)
-            if _parse_or_reparse_if_need( buffer.name, unsaved, context, changedtick) == True:
+            if _parse_or_reparse_if_need(
+                    buffer.name, unsaved, context, changedtick):
                 nvim.call('ClampNotifyHighlight')
-
 
         elif event[1] == 'rename':
             bufname = event[2][0]
@@ -182,7 +179,6 @@ def engine_start():
             _is_running = False
             event[3].send('ok')
 
-
         # elif event[1] == 'parse':
             # bufnr = event[2][0]
 
@@ -190,10 +186,10 @@ def engine_start():
             # buffer = nvim.buffers[bufnr - 1]
             # _update_unsaved(buffer, unsaved)
             # _parse_or_reparse_if_need(
-                # buffer.name,
-                # unsaved,
-                # context,
-                # changedtick)
+            # buffer.name,
+            # unsaved,
+            # context,
+            # changedtick)
 
         # elif event[1] == 'highlight':
             # bufnr = event[2][0]
@@ -206,14 +202,13 @@ def engine_start():
             # tu, tick = context[buffer.name]
 
             # symbol = clamp_helper.get_semantic_symbol_from_location(
-                # tu, buffer.name, row, col)
+            # tu, buffer.name, row, col)
 
             # syntax, occurrence = _highlight(
-                # tu, buffer.name, begin_line, end_line, symbol)
+            # tu, buffer.name, begin_line, end_line, symbol)
 
             # nvim.call('ClampHighlight', buffer.name, [
-                      # (syntax_pri, syntax), (occurrences_pri, occurrence)])
-
+            # (syntax_pri, syntax), (occurrences_pri, occurrence)])
 
 
 def _update_unsaved_all(nvim, unsaved):
@@ -231,7 +226,11 @@ def _parse(unsaved, bufname):
     if _parse.cdb:
         args = _parse.cdb.get_useful_args(bufname) + _parse.global_args
 
-    return _parse.idx.parse(bufname, args, unsaved, options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+    return _parse.idx.parse(
+        bufname,
+        args,
+        unsaved,
+        options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
 
 def _update_unsaved(vim_buffer, unsaved):
@@ -313,6 +312,7 @@ def _highlight(tu, bufname, begin_line, end_line, symbol):
             occurrence['clampOccurrences'].append(pos)
 
     return syntax, occurrence
+
 
 def main(argv=None):
     engine_start()

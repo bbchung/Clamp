@@ -13,8 +13,9 @@ def get_semantic_symbol_from_location(tu, filepath, row, col):
 
     tokens = cursor.get_tokens()
     for token in tokens:
-        if token.kind.value == 2 and row == token.location.line and token.location.column <= col and col < token.location.column + len(token.spelling):
-            symbol =  get_semantic_symbol(cursor)
+        if token.kind.value == 2 and row == token.location.line and token.location.column <= col and col < token.location.column + \
+                len(token.spelling):
+            symbol = get_semantic_symbol(cursor)
             if symbol and symbol.spelling == token.spelling:
                 return symbol
 

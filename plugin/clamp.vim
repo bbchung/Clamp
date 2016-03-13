@@ -65,6 +65,9 @@ fun! s:enable_clamp()
     call s:request_shutdown()
     let g:clamp_channel = rpcstart('python', [s:script_folder_path.'/../python/engine.py'])
     "let g:clamp_channel = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
+    call ClampNotifyParse()
+    call ClampNotifyHighlight()
+    
 endf
 
 fun! s:request_shutdown()
@@ -174,8 +177,8 @@ if g:clamp_autostart
     au VimEnter *.c,*.cpp,*.h,*.hpp call s:enable_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
-au InsertLeave,TextChanged * call ClampNotifyParse()
-au CursorMoved * call ClampNotifyHighlight()
+au BufEnter,InsertLeave,TextChanged * call ClampNotifyParse()
+au BufEnter,CursorMoved * call ClampNotifyHighlight()
 if (g:clamp_highlight_mode == 1)
     au TextChangedI * call ClampNotifyParse()
 endif
