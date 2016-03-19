@@ -53,17 +53,17 @@ def _get_default_syn(cursor_kind):
         return None
 
 
-def _get_syntax_group(cursor_kind, type_kind, blacklist):
-    group = _get_default_syn(cursor_kind)
+def _get_syntax_group(cursor, blacklist):
+    group = _get_default_syn(cursor.kind)
 
-    custom = CUSTOM_SYNTAX_GROUP.get(cursor_kind)
+    custom = CUSTOM_SYNTAX_GROUP.get(cursor.kind)
     if custom:
-        if cursor_kind == cindex.CursorKind.DECL_REF_EXPR:
-            custom = custom.get(type_kind)
+        if cursor.kind == cindex.CursorKind.DECL_REF_EXPR:
+            custom = custom.get(cursor.type.kind)
             if custom:
                 group = custom
-        elif cursor_kind == cursor_kind == cindex.CursorKind.MEMBER_REF_EXPR:
-            custom = custom.get(type_kind)
+        elif cursor.kind == cursor.kind == cindex.CursorKind.MEMBER_REF_EXPR:
+            custom = custom.get(cursor.type.kind)
             if custom:
                 group = custom
             else:
@@ -169,7 +169,20 @@ def engine_start():
                         result['renames'][bufname] = locations
 
             event[3].send(result)
+        elif event[1] == 'cursor_info':
+            bufname = event[2][0]
+            row = event[2][1]
+            col = event[2][2]
 
+            tu = context[bufname][0]
+            cursor = clamp_helper.get_cursor(tu, bufname, row, col)
+
+            if not cursor:
+                event[3].send('None')
+
+            result = {'cursor':str(cursor), 'cursor.kind': str(cursor.kind), 'cursor.type.kind': str(cursor.type.kind), 'cursor.spelling' : cursor.spelling}
+            event[3].send(result)
+            
         elif event[1] == 'update_unsaved_all':
             _update_unsaved_all(nvim, unsaved)
             event[3].send('ok')
@@ -296,8 +309,7 @@ def _highlight(tu, bufname, begin_line, end_line, symbol):
 
         pos = [token.location.line, token.location.column, len(token.spelling)]
         group = _get_syntax_group(
-            cursor.kind,
-            cursor.type.kind,
+            cursor,
             _highlight.blacklist)
 
         if group:

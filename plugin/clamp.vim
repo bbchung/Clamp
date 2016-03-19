@@ -105,6 +105,17 @@ fun! ClampNotifyParse()
     endif
 endf
 
+fun! ClampCursorInfo()
+    if !exists('g:clamp_channel')
+        return
+    endif
+
+    let s:pos = getpos('.')
+    let s:result = rpcrequest(g:clamp_channel, 'cursor_info', expand('%:p'), s:pos[1], s:pos[2])
+
+    echo s:result
+endf
+
 fun! ClampRename()
     if !exists('g:clamp_channel')
         return
