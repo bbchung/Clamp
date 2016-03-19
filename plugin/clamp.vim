@@ -136,14 +136,16 @@ fun! ClampRename()
 
     let l:wnr = winnr()
     let l:bufnr = bufnr('')
-    bufdo! call s:clamp_replace(s:result['renames'], s:old, s:new)
+    let l:qflist = []
+    bufdo! call s:clamp_replace(s:result['renames'], s:old, s:new, l:qflist)
     exe l:wnr.'wincmd w'
     exe 'buffer '.l:bufnr
+    call setqflist(l:qflist)
 
     silent! call rpcrequest(g:clamp_channel, 'update_unsaved_all')
 endf
 
-fun! s:clamp_replace(renames, old, new)
+fun! s:clamp_replace(renames, old, new, qflist)
     if (!has_key(a:renames, expand('%:p')) || empty(a:renames[expand('%:p')]))
         return
     endif
@@ -155,20 +157,18 @@ fun! s:clamp_replace(renames, old, new)
     endif
 
     let l:pattern = ''
-    let l:qflist = []
     for [l:row, l:col] in l:locations
         if (!empty(l:pattern))
             let l:pattern = l:pattern . '\|'
         endif
 
         let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old
-        call add(l:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"rename '".a:old."' to '".a:new."'"})
+        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"rename '".a:old."' to '".a:new."'"})
     endfor
 
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
 
     execute(l:cmd)
-    call setqflist(l:qflist)
     copen
 endf
 
