@@ -67,7 +67,6 @@ fun! s:enable_clamp()
     "let g:clamp_channel = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
     call ClampNotifyParse()
     call ClampNotifyHighlight()
-    
 endf
 
 fun! s:request_shutdown()
@@ -145,17 +144,21 @@ fun! s:clamp_replace(renames, old, new)
     endif
 
     let l:pattern = ''
+    let l:qflist = []
     for [l:row, l:col] in l:locations
         if (!empty(l:pattern))
             let l:pattern = l:pattern . '\|'
         endif
 
         let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old
+        call add(l:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"rename '".a:old."' to '".a:new."'"})
     endfor
 
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
 
     execute(l:cmd)
+    call setqflist(l:qflist)
+    copen
 endf
 
 
