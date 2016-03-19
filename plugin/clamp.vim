@@ -163,7 +163,7 @@ fun! s:clamp_replace(renames, old, new, qflist)
         endif
 
         let l:pattern = l:pattern . '\%' . l:row . 'l' . '\%>' . (l:col - 1) . 'c\%<' . (l:col + strlen(a:old)) . 'c' . a:old
-        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"rename '".a:old."' to '".a:new."'"})
+        call add(a:qflist, {'filename':bufname(''), 'bufnr':bufnr(''), 'lnum':l:row, 'text':"'".a:old."' was renamed to '".a:new."'"})
     endfor
 
     let l:cmd = '%s/' . l:pattern . '/' . a:new . '/gI'
