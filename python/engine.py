@@ -87,10 +87,10 @@ def engine_start():
     # nvim = attach('socket', path=sys.argv[1])
     # nvim.command('let g:clamp_channel=%d' % nvim.channel_id)
 
-    sys.stderr.write('channel=%d' % nvim.channel_id)
+    sys.stderr.write('channel=%d\n' % nvim.channel_id)
 
     cindex.Config.set_library_file(nvim.vars['clamp_libclang_path'])
-    sys.stderr.write('libclang=%s' % cindex.Config.library_file)
+    sys.stderr.write('libclang=%s\n' % cindex.Config.library_file)
 
     occurrences_pri = nvim.vars['clamp_occurrence_priority']
     syntax_pri = nvim.vars['clamp_syntax_priority']

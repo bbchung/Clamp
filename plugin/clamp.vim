@@ -49,7 +49,7 @@ fun! Shutdown()
     windo call s:clear_match_by_priorities([g:clamp_occurrence_priority, g:clamp_syntax_priority])
     exe a:wnr.'wincmd w'
 
-    silent! unlet g:clamp_channel
+    silent! unlet s:clamp_channel
 
 endf
 
@@ -61,7 +61,7 @@ fun! s:clear_match_by_priorities(priorities)
     endfor
 endf
 
-fun! s:enable_clamp()
+fun! s:start_clamp()
     call s:request_shutdown()
     let g:clamp_channel = rpcstart('python', [s:script_folder_path.'/../python/engine.py'])
     "let g:clamp_channel = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
@@ -70,9 +70,9 @@ fun! s:enable_clamp()
 endf
 
 fun! s:request_shutdown()
-    if exists('g:clamp_channel')
-        silent! call rpcrequest(g:clamp_channel, 'shutdown')
-        call rpcstop(g:clamp_channel)
+    if exists('s:clamp_channel')
+        silent! call rpcrequest(s:clamp_channel, 'shutdown')
+        call rpcstop(s:clamp_channel)
     endif
 
     call Shutdown()
@@ -89,9 +89,9 @@ fun! ClampNotifyHighlight()
 
     let b:highlight_tick = b:highlight_tick + 1
 
-    if exists('g:clamp_channel')
+    if exists('s:clamp_channel')
         let s:pos = getpos('.')
-        silent! call rpcnotify(g:clamp_channel, 'highlight', expand('%:p'), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
+        silent! call rpcnotify(s:clamp_channel, 'highlight', expand('%:p'), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
     endif
 endf
 
@@ -100,28 +100,28 @@ fun! ClampNotifyParse()
         return
     endif
 
-    if exists('g:clamp_channel')
-        silent! call rpcnotify(g:clamp_channel, 'parse', bufnr(''))
+    if exists('s:clamp_channel')
+        silent! call rpcnotify(s:clamp_channel, 'parse', bufnr(''), b:changedtick)
     endif
 endf
 
 fun! ClampCursorInfo()
-    if !exists('g:clamp_channel')
+    if !exists('s:clamp_channel')
         return
     endif
 
     let s:pos = getpos('.')
-    let s:result = rpcrequest(g:clamp_channel, 'cursor_info', expand('%:p'), s:pos[1], s:pos[2])
+    let s:result = rpcrequest(s:clamp_channel, 'cursor_info', expand('%:p'), s:pos[1], s:pos[2])
 
     echo s:result
 endf
 
 fun! ClampRename()
-    if !exists('g:clamp_channel')
+    if !exists('s:clamp_channel')
         return
     endif
     let s:pos = getpos('.')
-    let s:result = rpcrequest(g:clamp_channel, 'rename', expand('%:p'), s:pos[1], s:pos[2])
+    let s:result = rpcrequest(s:clamp_channel, 'rename', expand('%:p'), s:pos[1], s:pos[2])
     if empty(s:result) || empty(s:result['renames'])
         return
     endif
@@ -142,7 +142,7 @@ fun! ClampRename()
     exe 'buffer '.l:bufnr
     call setqflist(l:qflist)
 
-    silent! call rpcrequest(g:clamp_channel, 'update_unsaved_all')
+    silent! call rpcrequest(s:clamp_channel, 'update_unsaved_all')
 endf
 
 fun! s:clamp_replace(renames, old, new, qflist)
@@ -183,16 +183,16 @@ let g:clamp_heuristic_compile_args = get(g:, 'clamp_heuristic_compile_args', 1)
 let g:clamp_compile_args = get(g:, 'clamp_compile_args', [])
 let g:clamp_highlight_mode = get(g:, 'clamp_highlight_mode', 0)
 
-command! ClampStart call s:enable_clamp()
+command! ClampStart call s:start_clamp()
 command! ClampShutdown call s:request_shutdown()
 
 augroup Clamp
 if g:clamp_autostart
-    au VimEnter *.c,*.cpp,*.h,*.hpp call s:enable_clamp()
+    au VimEnter *.c,*.cpp,*.h,*.hpp call s:start_clamp()
 endif
 au VimLeave * silent! call s:request_shutdown()
 au BufEnter,InsertLeave,TextChanged * call ClampNotifyParse()
-au BufEnter,CursorMoved * call ClampNotifyHighlight()
+au CursorMoved * call ClampNotifyHighlight()
 if (g:clamp_highlight_mode == 1)
     au TextChangedI * call ClampNotifyParse()
 endif
