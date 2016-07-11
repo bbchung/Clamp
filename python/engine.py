@@ -104,7 +104,7 @@ def engine_start():
 
     unsaved = []
     while (_is_running):
-        event = nvim.session.next_message()
+        event = nvim.next_message()
         if not event:
             continue
 
@@ -137,7 +137,7 @@ def engine_start():
             bufnr = event[2][0]
 
             changedtick = nvim.eval('b:changedtick')
-            buffer = nvim.buffers[bufnr - 1]
+            buffer = nvim.buffers[bufnr]
             _update_unsaved(buffer, unsaved)
             if _parse_or_reparse_if_need(
                     buffer.name, unsaved, context, changedtick):
