@@ -135,8 +135,8 @@ def engine_start():
 
         elif event[1] == 'parse':
             bufnr = event[2][0]
+            changedtick = event[2][1]
 
-            changedtick = nvim.eval('b:changedtick')
             buffer = nvim.buffers[bufnr]
             _update_unsaved(buffer, unsaved)
             if _parse_or_reparse_if_need(
@@ -144,14 +144,17 @@ def engine_start():
                 nvim.call('ClampNotifyHighlight')
 
         elif event[1] == 'rename':
-            bufname = event[2][0]
-            row = event[2][1]
-            col = event[2][2]
+            bufnr = event[2][0]
+            changedtick = event[2][1]
+            row = event[2][2]
+            col = event[2][3]
 
-            _update_unsaved_and_parse_all(nvim, unsaved, context)
+            buffer = nvim.buffers[bufnr]
+            _update_unsaved(buffer, unsaved)
+            _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick)
 
             symbol = clamp_helper.get_semantic_symbol_from_location(
-                context[bufname][0], bufname, row, col)
+                context[buffer.name][0], buffer.name, row, col)
             if not symbol:
                 event[3].send({})
                 continue
@@ -160,13 +163,13 @@ def engine_start():
             usr = symbol.get_usr()
 
             if usr:
-                for bufname, [tu, tick] in context.iteritems():
+                for buffer.name, [tu, tick] in context.iteritems():
                     locations = []
                     clamp_helper.search_referenced_tokens_by_usr(
                         tu, usr, locations, symbol.spelling)
 
                     if locations:
-                        result['renames'][bufname] = locations
+                        result['renames'][buffer.name] = locations
 
             event[3].send(result)
         elif event[1] == 'cursor_info':
