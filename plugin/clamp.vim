@@ -121,7 +121,7 @@ fun! ClampRename()
         return
     endif
     let s:pos = getpos('.')
-    let s:result = rpcrequest(g:clamp_channel, 'rename', bufnr(''), b:changedtick, s:pos[1], s:pos[2])
+    let s:result = rpcrequest(g:clamp_channel, 'rename', expand('%:p'), s:pos[1], s:pos[2])
     if empty(s:result) || empty(s:result['renames'])
         return
     endif
