@@ -142,7 +142,6 @@ fun! ClampRename()
     exe 'buffer '.l:bufnr
     call setqflist(l:qflist)
 
-    silent! call rpcrequest(g:clamp_channel, 'update_unsaved_all')
 endf
 
 fun! s:clamp_replace(renames, old, new, qflist)
