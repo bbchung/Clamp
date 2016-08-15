@@ -66,7 +66,7 @@ fun! s:start_clamp()
     let g:clamp_channel = rpcstart('python', [s:script_folder_path.'/../python/engine.py'])
     "let g:clamp_channel = jobstart('python '.s:script_folder_path.'/../python/engine.py '.v:servername)
     call ClampNotifyParse()
-    call ClampNotifyHighlight()
+    call ClampReqHighlight()
 endf
 
 fun! s:request_shutdown()
@@ -78,7 +78,7 @@ fun! s:request_shutdown()
     call Shutdown()
 endf
 
-fun! ClampNotifyHighlight()
+fun! ClampReqHighlight()
     if index(['c', 'cpp', 'objc', 'objcpp'], &filetype) == -1
         return
     endif
@@ -91,7 +91,7 @@ fun! ClampNotifyHighlight()
 
     if exists('g:clamp_channel')
         let s:pos = getpos('.')
-        silent! call rpcnotify(g:clamp_channel, 'highlight', expand('%:p'), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
+        silent! call rpcrequest(g:clamp_channel, 'highlight', expand('%:p'), line('w0'), line('w$'), s:pos[1], s:pos[2], b:highlight_tick)
     endif
 endf
 
@@ -191,7 +191,7 @@ if g:clamp_autostart
 endif
 au VimLeave * silent! call s:request_shutdown()
 au BufEnter,InsertLeave,TextChanged * call ClampNotifyParse()
-au CursorMoved * call ClampNotifyHighlight()
+au CursorMoved,CursorMovedI * call ClampReqHighlight()
 if (g:clamp_highlight_mode == 1)
     au TextChangedI * call ClampNotifyParse()
 endif
