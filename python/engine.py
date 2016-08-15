@@ -3,6 +3,7 @@ from clang import cindex
 import compilation_database
 import clamp_helper
 import sys
+import thread
 
 
 CUSTOM_SYNTAX_GROUP = {
@@ -103,6 +104,7 @@ def engine_start():
     _highlight.blacklist = nvim.vars['clamp_highlight_blacklist']
 
     unsaved = []
+    unsaved_tick = {}
     while (_is_running):
         event = nvim.next_message()
         if not event:
@@ -115,11 +117,6 @@ def engine_start():
             end_line = event[2][2]
             row = event[2][3]
             col = event[2][4]
-            highlight_tick = event[2][5]
-
-            if highlight_tick != nvim.current.buffer.vars['highlight_tick']:
-                event[3].send(0)
-                continue
 
             if bufname not in context:
                 event[3].send(0)
@@ -137,24 +134,27 @@ def engine_start():
 
             event[3].send(1)
 
-        elif event[1] == 'parse':
-            bufnr = event[2][0]
-            changedtick = event[2][1]
 
-            buffer = nvim.buffers[bufnr]
-            _update_unsaved(buffer, unsaved)
-            _parse_or_reparse_if_need(buffer.name, unsaved, context, changedtick)
+        elif event[1] == 'parse':
+            bufname = event[2][0]
+            changedtick = event[2][1]
+            content = event[2][2]
+
+            _update_unsaved(bufname, unsaved, unsaved_tick, changedtick, content)
+            thread.start_new_thread(_parse_or_reparse_if_need, (bufname, unsaved, context, unsaved_tick, changedtick))
+            event[3].send(0)
 
         elif event[1] == 'rename':
             bufname = event[2][0]
             row = event[2][1]
             col = event[2][2]
 
-            _update_unsaved_and_parse_all(nvim, unsaved, context)
+            _update_unsaved_and_parse_all(nvim, unsaved, unsaved_tick, context)
 
             symbol = clamp_helper.get_semantic_symbol_from_location(
                 context[bufname][0], bufname, row, col)
             if not symbol:
+                print 'fffff'
                 event[3].send({})
                 continue
 
@@ -186,7 +186,7 @@ def engine_start():
             event[3].send(result)
             
         elif event[1] == 'update_unsaved_all':
-            _update_unsaved_all(nvim, unsaved)
+            _update_unsaved_all(nvim, unsaved, unsaved_tick)
             event[3].send('ok')
 
         elif event[1] == 'shutdown':
@@ -226,7 +226,7 @@ def engine_start():
             # (syntax_pri, syntax), (occurrences_pri, occurrence)])
 
 
-def _update_unsaved_all(nvim, unsaved):
+def _update_unsaved_all(nvim, unsaved, unsaved_tick):
     del unsaved[:]
 
     for buffer in nvim.buffers:
@@ -234,6 +234,7 @@ def _update_unsaved_all(nvim, unsaved):
             continue
 
     unsaved.append((buffer.name, '\n'.join(buffer)))
+    unsaved_tick[buffer.name] = nvim.eval('b:changedtick')
 
 
 def _parse(unsaved, bufname):
@@ -248,16 +249,17 @@ def _parse(unsaved, bufname):
         options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
 
-def _update_unsaved(vim_buffer, unsaved):
-    for bufname, buffer in unsaved:
-        if bufname == vim_buffer.name:
-            unsaved.remove((bufname, buffer))
+def _update_unsaved(bufname, unsaved, unsaved_tick, changedtick, content):
+    for item in unsaved:
+        if item[0] == bufname:
+            unsaved.remove(item)
 
-    unsaved.append((vim_buffer.name, '\n'.join(vim_buffer)))
+    unsaved.append((bufname, content))
+    unsaved_tick[bufname] = changedtick
 
 
-def _update_unsaved_and_parse_all(nvim, unsaved, context):
-    _update_unsaved_all(nvim, unsaved)
+def _update_unsaved_and_parse_all(nvim, unsaved, unsaved_tick, context):
+    _update_unsaved_all(nvim, unsaved, unsaved_tick)
 
     for buffer in nvim.buffers:
         if not buffer.name.split(".")[-1] in ['c', 'cpp', 'h', 'hpp']:
@@ -267,23 +269,31 @@ def _update_unsaved_and_parse_all(nvim, unsaved, context):
             buffer.name,
             unsaved,
             context,
+            unsaved_tick,
             nvim.call('getbufvar',
                       buffer.name,
                       'changedtick'))
 
 
-def _parse_or_reparse_if_need(bufname, unsaved, context, changedtick):
-    if bufname not in context:
-        context[bufname] = [_parse(unsaved, bufname), changedtick]
-        return True
-    elif context[bufname][1] != changedtick:
-        context[bufname][0].reparse(
-            unsaved,
-            options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-        context[bufname][1] = changedtick
-        return True
-    else:
+def _parse_or_reparse_if_need(bufname, unsaved, context, unsaved_tick, changedtick):
+    if changedtick < unsaved_tick[bufname]:
         return False
+
+    context[bufname] = [_parse(unsaved, bufname), changedtick]
+    return True
+    # if bufname not in context
+
+    # if bufname not in context:
+        # context[bufname] = [_parse(unsaved, bufname), changedtick]
+        # return True
+    # elif context[bufname][1] != changedtick:
+        # context[bufname][0].reparse(
+            # unsaved,
+            # options=cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+        # context[bufname][1] = changedtick
+        # return True
+    # else:
+        # return False
 
 
 def _highlight(tu, bufname, begin_line, end_line, symbol):
