@@ -276,7 +276,7 @@ def _update_unsaved_and_parse_all(nvim, unsaved, unsaved_tick, context):
 
 
 def _parse_or_reparse_if_need(bufname, unsaved, context, unsaved_tick, changedtick):
-    if changedtick < unsaved_tick[bufname]:
+    if bufname in unsaved_tick and changedtick < unsaved_tick[bufname]:
         return False
 
     context[bufname] = [_parse(unsaved, bufname), changedtick]
