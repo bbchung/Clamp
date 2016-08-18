@@ -209,13 +209,13 @@ def engine_start():
 
             result = {'cursor':str(cursor), 'cursor.kind': str(cursor.kind), 'cursor.type.kind': str(cursor.type.kind), 'cursor.spelling' : cursor.spelling}
             event[3].send(result)
-            
+
         elif event[1] == 'update_unsaved_all':
             _update_unsaved_all(nvim, unsaved)
             event[3].send('ok')
 
         elif event[1] == 'shutdown':
-            nvim.session.stop()
+            nvim.stop()
             _is_running = False
             event[3].send('ok')
 
